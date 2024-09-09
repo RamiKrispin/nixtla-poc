@@ -1,0 +1,159 @@
+---
+title: "Forecasting with the mlforecast Library"
+format:
+  html:
+    code-fold: false
+jupyter: python3
+---
+
+This notebook provides an example for creating a forecasting with the mlforecast library.
+
+
+## Loading the Required Libraries
+
+```{python}
+import pandas as pd
+import datetime
+
+from mlforecast import MLForecast
+from utilsforecast.plotting import plot_series
+
+from statistics import mean
+
+
+from mlforecast.target_transforms import Differences
+from mlforecast.utils import PredictionIntervals
+from window_ops.expanding import expanding_mean
+from lightgbm import LGBMRegressor
+from xgboost import XGBRegressor
+from sklearn.linear_model import LinearRegression
+```
+
+## Loading the Data
+
+We will use the US hourly demand for electricity. The series contains a two (plus) years of data.
+
+```{python}
+ts = pd.read_csv("data/data.csv")
+ts["ds"] = pd.to_datetime(ts["ds"])
+
+print(ts.head())
+
+print(ts.dtypes)
+
+```
+
+
+Let's plot the series:
+
+```{python}
+plot_series(ts, engine = "plotly").update_layout(height=300)
+```
+
+
+Next, we will split the data inot training and testing partitions, leaving the last 72 hours as testing partition.
+
+```{python}
+test_length = 72
+end = ts["ds"].max()
+train_end = end  - datetime.timedelta(hours = test_length)
+
+
+train = ts[ts["ds"] <= train_end]
+test = ts[ts["ds"] > train_end]
+```
+
+
+Let's plot the partitions:
+```{python}
+plot_series(train, engine = "plotly").update_layout(height=300)
+```
+
+```{python}
+plot_series(test, engine = "plotly").update_layout(height=300)
+```
+
+## Create a Forecast
+
+We set a forecasting object using the following three regression models:
+
+- Light Gradient Boost model
+- XGBoost model
+- Linear Regression model
+
+We will use regress the series with its lags (lags 1 and 24) using the `lags` argument, and set a seasonal features with the `data_features` argument:
+
+```{python}
+ml_models = [LGBMRegressor(), XGBRegressor(), LinearRegression()]
+
+mlf = MLForecast(
+    models= ml_models,  
+    freq='h', 
+    lags=list(range(1, 24)),  
+    date_features=['year', 'month', 'day', 'dayofweek', 'quarter', 'week', 'hour'],  # Date features to use as regressors
+)
+
+```
+
+We will use the `fit` method to train the model on the training partition
+
+```{python}
+mlf.fit(df = train,  fitted=True, 
+prediction_intervals=PredictionIntervals(n_windows=5, h=72, method="conformal_distribution" ))
+
+```
+
+And create forecast using the `predict` method
+
+```{python}
+ml_forecast = mlf.predict(72, level  = [95])
+
+ml_forecast
+```
+
+
+Let's use again the `plot_forecast` function to plot the forecast with the testing partition:
+
+```{python}
+plot_series(test, ml_forecast, level  = [95], engine = "plotly").update_layout(height=300)
+```
+
+Last but not least, let's score the models performance on the testing partition:
+
+```{python}
+def mape(y, yhat):
+    mape = mean(abs(y - yhat)/ y) 
+    return mape
+
+def rmse(y, yhat):
+    rmse = (mean((y - yhat) ** 2 )) ** 0.5
+    return rmse
+
+def coverage(y, lower, upper):
+    coverage = sum((y <= upper) & (y >= lower)) / len(y)
+    return coverage
+
+```
+
+
+```{python}
+fc = ml_forecast.merge(test, how = "left", on = "ds")
+fc_performance = None
+
+for i in ["LGBMRegressor", "XGBRegressor", "LinearRegression"]:
+    m = mape(y = fc.y, yhat = fc[i])
+    r = rmse(y = fc.y, yhat = fc[i])
+    c = coverage(y = fc.y, lower = fc[i + "-lo-95"], upper = fc[i + "-hi-95"])
+
+    perf = {"model": i,
+            "mape": m,
+            "rmse": r,
+            "coverage": c}
+    if fc_performance is None:
+        fc_performance = pd.DataFrame([perf])
+    else:
+        fc_performance = pd.concat([fc_performance, pd.DataFrame([perf])])
+
+fc_performance.sort_values("rmse")
+
+```

@@ -1,0 +1,173 @@
+---
+title: "Data Prep"
+format:
+  html:
+    code-fold: false
+jupyter: python3
+---
+
+
+This document provides the steps of loading a dataset from a CSV file and reformating it to a time series object following Nixtla format. This includes the following steps:
+
+- Loading the raw data from a CSV file
+- Reformat the data
+- Filter the data by time range
+
+## Data
+
+We will use a preload dataset of the US hourly demand for electricity sourced from the [EIA API](https://www.eia.gov/opendata/browser/electricity/rto/region-data?frequency=hourly&data=value;&facets=respondent;type;&respondent=US48;&type=D;&sortColumn=period;&sortDirection=desc;).
+
+
+The header of the query from the EIA API:
+``` JSON
+{
+    "frequency": "hourly",
+    "data": [
+        "value"
+    ],
+    "facets": {
+        "respondent": [
+            "US48"
+        ],
+        "type": [
+            "D"
+        ]
+    },
+    "start": null,
+    "end": null,
+    "sort": [
+        {
+            "column": "period",
+            "direction": "desc"
+        }
+    ],
+    "offset": 0,
+    "length": 5000
+}
+```
+
+**Note:** The EIA API has a 5000-observation limit per call. Therefore, if you wish to pull the full series history, you will have to send multiple GET requests by iterate over the date range.
+
+
+## Required Libraries
+
+Throughout this notebook, we will use the `pandas` library to handle the data and the `datetime` library to reformat the object timestamp:
+```{python}
+import pandas as pd
+import datetime
+```
+
+
+## Load the Raw Data
+We will load the US hourly demand for electricity from a flat file using the pandas' `read_csv` function:
+
+```{python}
+data = pd.read_csv("data/us48.csv")
+```
+
+Let's use the `head` and `dtypes` methods to review the object attributes:
+
+```{python}
+print(data.head())
+```
+
+The raw data has the following seven columns:
+
+- **period** - the series timestamp
+- **respondent** - the series code 
+- **respondent-name** - the series name 
+- **type** - the series type code
+- **type-name** - the series type name
+- **value** - the series values
+- **value-units** - the series values units
+
+
+```{python}
+print(data.dtypes)
+```
+
+As you can notice from the above output, the series value is set as a `float64` (e.g., numeric), however, the series timestamp - `period` is a string. Therefore, we will have to reformat it into a `datetime` object using the `to_datetime` function:
+
+```{python}
+data["period"] = pd.to_datetime(data["period"])
+```
+We can validate the object format after the conversion of the `period` column:
+```{python}
+print(data.dtypes)
+```
+
+## Reformat the DataFrame to Nixtla Input format
+
+Nixtla libraries inputs use the following there columns data structure:
+
+- `unique_id` - the series ID, enabling the use of a time series object with multiple time series
+- `ds` - the series timestamp
+- `y` - the series values
+
+Let's reformat the DataFrame object by reducing unused dimensions and keeping the series timestamp and values:
+
+```{python}
+ts = data[["period", "value"]]
+ts = ts.sort_values("period")
+ts = ts.rename(columns = {"period": "ds", "value": "y"})
+ts["unique_id"] = 1
+
+ts.head()
+
+```
+
+
+Let's now plot the series using the plot function from the `StatsForecast` module:
+
+```{python}
+from statsforecast import StatsForecast
+
+StatsForecast.plot(ts)
+```
+
+By default, the plot series uses the `matplotlib` library as the visualization engine. You can modify it to `plotly` using the `engine` argument:
+
+```{python}
+StatsForecast.plot(ts, engine = "plotly").update_layout(height=300)
+```
+
+
+
+## Subsetting the series
+
+As we want to use later two full yearly cycles to train the models, we will subset the series to the last 25 months (leaving at least a month for testing). Let's start by defining the end time of the series as the last full day (e.g., that has at least 24 hours) by finding the most recent timestamp floor and subtracting 1 hour.
+
+```{python}
+end = ts["ds"].max().floor(freq = "d") - datetime.timedelta(hours = 1)
+
+
+print(end)
+```
+
+Next, let's subtract from the `end` value 25 months:
+
+```{python}
+start = end - datetime.timedelta(hours = 24 * 30 * 25)
+print(start)
+```
+
+Now, we can use the `start` and `end` values to subset the series:
+
+``` {python}
+df = ts[(ts["ds"] <= end) & (ts["ds"] >= start)]
+
+df.tail()
+```
+
+Reploting the subset series:
+
+```{python}
+StatsForecast.plot(df, engine = "plotly").update_layout(height=300)
+```
+
+## Saving the Data Back to CSV
+last but not least, let's save the series:
+```{python}
+df.to_csv("data/data.csv", index = False)
+ts.to_csv("data/ts_data.csv", index = False)
+```

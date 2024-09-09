@@ -1,0 +1,196 @@
+---
+title: "US48 Demand for Electricity Forecast"
+format:
+  html:
+    code-fold: true
+jupyter: python3
+---
+
+
+```{python}
+import os
+import pandas as pd
+from statsforecast import StatsForecast
+import datetime
+import statsmodels.api as sm
+import matplotlib.pyplot as plt
+
+
+from statsforecast.models import (
+    HoltWinters,
+    CrostonClassic as Croston, 
+    HistoricAverage,
+    DynamicOptimizedTheta as DOT,
+    SeasonalNaive,
+    AutoARIMA as AA,
+    AutoETS as AE,
+    AutoTBATS as AT,
+     MSTL
+
+)
+
+from mlforecast import MLForecast
+from mlforecast.target_transforms import Differences
+from mlforecast.utils import PredictionIntervals
+from window_ops.expanding import expanding_mean
+from lightgbm import LGBMRegressor
+from xgboost import XGBRegressor
+from sklearn.linear_model import LinearRegression
+import plotly.graph_objects as go
+```
+
+
+```{python}
+data = pd.read_csv("data/us48.csv")
+data["ds"] = pd.to_datetime(data["period"])
+end = data["ds"].max().floor(freq = "d") - datetime.timedelta(hours = 1)
+start = end - datetime.timedelta(hours = 24 * 30 * 25)
+data = data[(data["ds"] <= end) & (data["ds"] >= start)]
+data = data.sort_values(by = "ds")
+data = data[["ds", "value"]]
+data = data.rename(columns = {"ds": "ds", "value": "y"})
+data["unique_id"] = 1
+
+
+data.head()
+```
+
+```{python}
+p = go.Figure()
+p.add_trace(go.Scatter(x = data["ds"], y = data["y"],
+                       mode='lines',
+                    name='data',
+                    line=dict(color='royalblue', width=2)))
+p.show()
+```
+
+```{python}
+os.environ['NIXTLA_ID_AS_COL'] = '1'
+StatsForecast.plot(data)
+
+```
+
+```{python}
+from matplotlib.collections import PolyCollection
+curr_fig, curr_ax = plt.subplots(figsize=(10, 6))
+
+sm.graphics.tsa.plot_acf(data["y"].values.squeeze(), lags = 170, ax=curr_ax, vlines_kwargs={"colors": "blue"}, adjusted= True, auto_ylims= True)
+plt.show()
+
+```
+
+
+
+
+
+```{python}
+
+stats_models = [
+    HoltWinters(),
+    Croston(),
+    SeasonalNaive(season_length=[24, 24 * 7]),
+    HistoricAverage(),
+    DOT(season_length=[24, 24 * 7]),
+    AA(),
+    # AE(season_length=[24, 24 * 7]),
+    # AT(season_length=[24, 24 * 7]),
+    MSTL(
+    season_length=[24, 24 * 7], 
+    trend_forecaster=AA() 
+)
+]
+
+
+sf = StatsForecast( 
+    models=stats_models,
+    freq="H", 
+    fallback_model = SeasonalNaive(season_length=24),
+    n_jobs= -1,
+)
+```
+
+
+```{python}
+md_args = {
+    "models": stats_models,
+    "freq":"H", 
+    "fallback_model": SeasonalNaive(season_length=24),
+    "n_jobs": -1,
+}
+
+models = ["HoltWinters", "Croston", "AutoARIMA"]
+
+
+
+
+sf = StatsForecast( 
+    models=methods["methods"]["model2"]["models"],
+    freq=md_args["freq"], 
+    fallback_model = md_args["fallback_model"],
+    n_jobs= md_args["n_jobs"]
+)
+```
+
+```{python}
+forecasts_stats = sf.forecast(df=data, h=72, level=[95])
+forecasts_stats.head()
+
+```
+
+
+```{python}
+sf.plot(data.tail(100),forecasts_stats,  models=["CrostonClassic"], level=[95])
+```
+
+
+```{python}
+ml_models = [LGBMRegressor(), XGBRegressor(), LinearRegression()]
+
+mlf = MLForecast(
+    models= ml_models,  # List of models for forecasting: LightGBM, XGBoost and Linear Regression
+    freq='H',  # Frequency of the data - 'D' for daily frequency
+    lags=list(range(1, 7)),  
+    lag_transforms = {
+        1:  [expanding_mean],  # Apply expanding mean transformation to the lag of 1 day
+    },
+    date_features=['year', 'month', 'day', 'dayofweek', 'quarter', 'week', 'hour'],  # Date features to use as regressors
+)
+```
+
+
+
+```{python}
+
+mlf = MLForecast(
+    models=models,
+    freq=methods["freq"], 
+    lags= [1],
+    date_features= None
+)
+
+mlf.fit(df = data,  fitted=True, 
+prediction_intervals=PredictionIntervals(n_windows=5, h=72, method="conformal_distribution" ))
+
+ml_forecast = mlf.predict(72, level  = [90])
+
+ml_forecast
+```
+
+
+
+
+
+
+```{python}
+# Fit the MLForecast models to the data, with prediction intervals set using a window size of 28 days
+mlf.fit(df = data,  fitted=True, 
+prediction_intervals=PredictionIntervals(n_windows=5, h=72, method="conformal_distribution" ))
+ml_forecast = mlf.predict(72, level  = [90])
+ml_forecast
+```
+
+
+```{python}
+sf.plot(data.tail(100),ml_forecast, level = [90])
+
+```

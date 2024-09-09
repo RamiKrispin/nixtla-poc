@@ -1,0 +1,63 @@
+---
+title: "Time Series EDA"
+format:
+  html:
+    code-fold: true
+jupyter: python3
+---
+
+
+## Loading the Required Libraries
+
+```{python}
+import pandas as pd
+import datetime
+from statsforecast import StatsForecast
+from statsforecast.models import MSTL, AutoARIMA, SeasonalNaive
+import matplotlib.pyplot as plt
+```
+
+
+## Load the Data
+
+
+```{python}
+ts = pd.read_csv("data/ts_data.csv")
+ts["ds"] = pd.to_datetime(ts["ds"])
+print(ts.head())
+
+print(ts.dtypes)
+```
+
+```{python}
+ts["ds"] = pd.to_datetime(ts["ds"])
+```
+
+
+
+```{python}
+mstl = MSTL(
+    season_length=[24, 24 * 7, round(24 * 365 / 12)], 
+    trend_forecaster=AutoARIMA() 
+)
+
+
+sf = StatsForecast(
+    models=[mstl], # model used to fit each time series 
+    freq='h', # frequency of the data
+)
+```
+
+
+
+```{python}
+sf = sf.fit(df=ts)
+```
+
+
+
+```{python}
+sf.fitted_[0, 0].model_.plot(subplots=True, grid=True)
+plt.tight_layout()
+plt.show()
+```
