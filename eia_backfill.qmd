@@ -44,6 +44,8 @@ In addition, we will use the following libraries:
 
 
 ```{python}
+import requests
+import json
 import os
 import datetime
 from zoneinfo import ZoneInfo
@@ -54,21 +56,23 @@ import plotly.graph_objects as go
 
 
 ## Setting Parameters
-
-Next, we will set the backfile parameters:
+Let's start by loading the pipeline metadata:
 ```{python}
-api_path = "electricity/rto/region-data/data"
-facets = {
-    "respondent": "US48",
-    "type": "D"
-}
+raw_json = open("./settings/settings.json")
+meta_json = json.load(raw_json)
+api_path = meta_json["api"]["api_path"]
+facets =  meta_json["api"]["facets"]
 
-start = datetime.datetime(2015, 7, 1, 5)
-end = datetime.datetime(2024, 4, 26, 14)
+s = meta_json["backfill"]["start"]
+e = meta_json["backfill"]["end"]
+start = datetime.datetime(s["year"], s["month"], s["day"], s["hour"])
+end = datetime.datetime(e["year"], e["month"], e["day"], e["hour"])
 
-offset = 2250
-
+offset = meta_json["backfill"]["offset"]
+data_path = meta_json["data"]["data_path"]
+log_path = meta_json["data"]["log_path"]
 ```
+
 
 We will use the `getenv` function from the `os` library to pull the EIA API key, which is stored as an environment variable named `EIA_API_KEY`:
 
@@ -79,7 +83,7 @@ eia_api_key = os.getenv('EIA_API_KEY')
 We will use the `eia_metadata` function to pull the series metadata. Note that to pull metadata from the API, we will use as the `api_path` the series routh path and drop the `/data` extension (which is used to pull data):
 
 ```{python}
-metadata = eia_api.eia_metadata(api_key = eia_api_key, api_path = "electricity/rto/region-data/")
+metadata = eia_api.eia_metadata(api_key = eia_api_key, api_path = api_path)
 ```
 
 Depending on the API path, the API returns some useful information about the series available on the path:
@@ -88,12 +92,6 @@ Depending on the API path, the API returns some useful information about the ser
 metadata.meta.keys()
 ```
 
-One useful data point is the start and end period of the series:
-
-```{python}
-print(metadata.meta["startPeriod"])
-print(metadata.meta["endPeriod"])
-```
 
 ## Pulling the Data
 
@@ -136,21 +134,64 @@ ts_obj = pd.DataFrame(np.arange(start = start, stop = end + datetime.timedelta(h
 ts_obj  = ts_obj.merge(df.data, left_on = "index", right_on = "period", how="left")
 ```
 
+### Data validation
+
+```{python}
+
+print(ts_obj["type"].unique())
+print(ts_obj["value"].isna().sum())
+```
+
+### Impute Missing Values
+```{python}
+
+ts_obj["impute"] = np.NaN
+
+ts_obj = ts_obj.sort_values(by = ["index"])
+
+missing_index = ts_obj[ts_obj["value"].isnull()].index.tolist()
+non_missing_index = ts_obj.index.difference(missing_index).tolist()
+
+for i in missing_index:
+    if i > 336:
+        ts_obj.loc[i ,"impute"] = (ts_obj.loc[i - 336 ,"value"] + ts_obj.loc[i - 168 ,"value"] + ts_obj.loc[i - 24 ,"value"]) / 3
+    elif i > 168:
+        ts_obj.loc[i ,"impute"] = (ts_obj.loc[i - 168 ,"value"] + ts_obj.loc[i - 24 ,"value"]) / 2
+    elif i > 24:
+        ts_obj.loc[i ,"impute"] = ts_obj.loc[i - 24 ,"value"]
+    else:
+        print("There are not enough observations to impute observation:", i)
+
+ts_obj["y"] = np.NaN
+
+ts_obj.loc[missing_index, "y"] = ts_obj.loc[missing_index, "impute"]
+ts_obj.loc[non_missing_index, "y"] = ts_obj.loc[non_missing_index, "value"]
+```
+
+
+
 ### Plot the Series
 
 We will use Plotly to visualize the series:
 
 ```{python}
-d = df.data.sort_values(by = ["period"])
-d = d[d["respondent"] == "US48"]
 p = go.Figure()
-p.add_trace(go.Scatter(x = ts_obj["index"], y = ts_obj["value"],
+p.add_trace(go.Scatter(x = ts_obj["index"], y = ts_obj["y"],
                        mode='lines',
-                    name='data',
+                    name='Actual',
                     line=dict(color='royalblue', width=2)))
+
+p.add_trace(go.Scatter(x = ts_obj["index"], y = ts_obj["impute"], name = "Imputed"))
+p.update_layout(title = "US Hourly Demand for Electricity")
 p.show()
 ```
 
+
+### Reformat the Data
+
+```{python}
+df = ts_obj[["index", "respondent", "type", "value", "value-units", "impute", "y"]]
+```
 
 ### Create Log and Check for Missing values
 
@@ -166,8 +207,9 @@ log = {
     "end_act": ts_obj["period"].max(),
     "start_match": ts_obj["period"].min() == start, 
     "end_match": ts_obj["period"].max() == end, 
-     "n_obs": len(ts_obj),
+    "n_obs": len(ts_obj),
     "na": ts_obj["value"].isna().sum(),
+    "na_status": "imputed",
     "type": "backfill",
     "update": False,
     "success": False,
@@ -188,10 +230,10 @@ if (log_file.iloc[0]["end"] == log_file.iloc[0]["end_act"] and
     log_file.iloc[0]["na"] == 0):
     log_file.loc[0, "success"] = True
     print("Save the data into CSV file")
-    df.data.to_csv("data/us48.csv", index = False)
+    df.data.to_csv(data_path, index = False)
     log_file.loc[0, "update"] = True
     print("Save the metadata into CSV file")
-    log_file.to_csv("data/us48_metadata.csv", index = False)
+    log_file.to_csv(log_path, index = False)
 
     
 else:
