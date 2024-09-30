@@ -16,10 +16,12 @@ def hour_offset(start, end, offset):
     current = [start]
     while max(current) < end:
         if(max(current) + datetime.timedelta(hours = offset) < end):
-            current.append(max(current) + datetime.timedelta(hours = offset))
+            t = max(current) + datetime.timedelta(hours = offset)
+            if t.hour == 0:
+                t = t + datetime.timedelta(hours = 1)
+            current.append(t)
         else:
            current.append(end) 
-           
     return current
 
 def eia_get(api_key, 
