@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.554">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>US48 Demand for Electricity Forecast</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="statsforecast_demo_files/libs/clipboard/clipboard.min.js"></script>
+<script src="statsforecast_demo_files/libs/quarto-html/quarto.js"></script>
+<script src="statsforecast_demo_files/libs/quarto-html/popper.min.js"></script>
+<script src="statsforecast_demo_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="statsforecast_demo_files/libs/quarto-html/anchor.min.js"></script>
+<link href="statsforecast_demo_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="statsforecast_demo_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="statsforecast_demo_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="statsforecast_demo_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="statsforecast_demo_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+<script type="text/javascript">
+window.PlotlyConfig = {MathJaxConfig: 'local'};
+if (window.MathJax && window.MathJax.Hub && window.MathJax.Hub.Config) {window.MathJax.Hub.Config({SVG: {font: "STIX-Web"}});}
+if (typeof require !== 'undefined') {
+require.undef("plotly");
+requirejs.config({
+    paths: {
+        'plotly': ['https://cdn.plot.ly/plotly-2.34.0.min']
+    }
+});
+require(['plotly'], function(Plotly) {
+    window._Plotly = Plotly;
+});
+}
+</script>
+
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">US48 Demand for Electricity Forecast</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="load-libraries" class="level2">
+<h2 class="anchored" data-anchor-id="load-libraries">Load Libraries</h2>
+<div id="865e8ab3" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statsforecast <span class="im">import</span> StatsForecast</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> datetime</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> statsmodels.api <span class="im">as</span> sm</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> utilsforecast.plotting <span class="im">import</span> plot_series</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statistics <span class="im">import</span> mean</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statsforecast.models <span class="im">import</span> (</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    HoltWinters,</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    CrostonClassic <span class="im">as</span> Croston, </span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    HistoricAverage,</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    DynamicOptimizedTheta,</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    SeasonalNaive,</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    AutoARIMA,</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    AutoRegressive,</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    AutoETS,</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    AutoTBATS,</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    MSTL,</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    Holt</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> plotly.graph_objects <span class="im">as</span> go</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="load-the-data" class="level2">
+<h2 class="anchored" data-anchor-id="load-the-data">Load the Data</h2>
+<p>Reformat the data</p>
+<div id="7594b990" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>ts <span class="op">=</span> pd.read_csv(<span class="st">"data/data.csv"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>ts[<span class="st">"ds"</span>] <span class="op">=</span> pd.to_datetime(ts[<span class="st">"ds"</span>])</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>ts <span class="op">=</span> ts.sort_values(<span class="st">"ds"</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>ts.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="16">
+<div>
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ds</th>
+<th data-quarto-table-cell-role="th">y</th>
+<th data-quarto-table-cell-role="th">unique_id</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>2022-04-06 23:00:00</td>
+<td>462894.0</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>2022-04-07 00:00:00</td>
+<td>463663.0</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>2022-04-07 01:00:00</td>
+<td>464916.0</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>2022-04-07 02:00:00</td>
+<td>459376.0</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>2022-04-07 03:00:00</td>
+<td>441989.0</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</div>
+<p>Subset for the last 25 months:</p>
+<div id="adbcbca4" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>end <span class="op">=</span> ts[<span class="st">"ds"</span>].<span class="bu">max</span>()</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>start <span class="op">=</span> end <span class="op">-</span> datetime.timedelta(hours <span class="op">=</span> <span class="dv">24</span> <span class="op">*</span> <span class="dv">31</span> <span class="op">*</span> <span class="dv">25</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>ts <span class="op">=</span> ts[ts[<span class="st">"ds"</span>] <span class="op">&gt;=</span> start]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Set the last 72 hours as testing partition and use the rest for training</p>
+<div id="1b95c672" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>test_length <span class="op">=</span> <span class="dv">72</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>train_end <span class="op">=</span> end  <span class="op">-</span> datetime.timedelta(hours <span class="op">=</span> test_length)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>train <span class="op">=</span> ts[ts[<span class="st">"ds"</span>] <span class="op">&lt;=</span> train_end]</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>test <span class="op">=</span> ts[ts[<span class="st">"ds"</span>] <span class="op">&gt;</span> train_end]</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>plot_series(train, engine <span class="op">=</span> <span class="st">"plotly"</span>)</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>plot_series(test, engine <span class="op">=</span> <span class="st">"plotly"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>                            <div id="d07c71bd-43dc-4d51-935e-72e192e05d1e" class="plotly-graph-div" style="height:200px; width:100%;"></div>            <script type="text/javascript">                require(["plotly"], function(Plotly) {                    window.PLOTLYENV=window.PLOTLYENV || {};                                    if (document.getElementById("d07c71bd-43dc-4d51-935e-72e192e05d1e")) {                    Plotly.newPlot(                        "d07c71bd-43dc-4d51-935e-72e192e05d1e",                        [{"legendgroup":"y","line":{"color":"#17becf","width":1},"mode":"lines","name":"y","showlegend":true,"x":["2024-04-23T00:00:00","2024-04-23T01:00:00","2024-04-23T02:00:00","2024-04-23T03:00:00","2024-04-23T04:00:00","2024-04-23T05:00:00","2024-04-23T06:00:00","2024-04-23T07:00:00","2024-04-23T08:00:00","2024-04-23T09:00:00","2024-04-23T10:00:00","2024-04-23T11:00:00","2024-04-23T12:00:00","2024-04-23T13:00:00","2024-04-23T14:00:00","2024-04-23T15:00:00","2024-04-23T16:00:00","2024-04-23T17:00:00","2024-04-23T18:00:00","2024-04-23T19:00:00","2024-04-23T20:00:00","2024-04-23T21:00:00","2024-04-23T22:00:00","2024-04-23T23:00:00","2024-04-24T00:00:00","2024-04-24T01:00:00","2024-04-24T02:00:00","2024-04-24T03:00:00","2024-04-24T04:00:00","2024-04-24T05:00:00","2024-04-24T06:00:00","2024-04-24T07:00:00","2024-04-24T08:00:00","2024-04-24T09:00:00","2024-04-24T10:00:00","2024-04-24T11:00:00","2024-04-24T12:00:00","2024-04-24T13:00:00","2024-04-24T14:00:00","2024-04-24T15:00:00","2024-04-24T16:00:00","2024-04-24T17:00:00","2024-04-24T18:00:00","2024-04-24T19:00:00","2024-04-24T20:00:00","2024-04-24T21:00:00","2024-04-24T22:00:00","2024-04-24T23:00:00","2024-04-25T00:00:00","2024-04-25T01:00:00","2024-04-25T02:00:00","2024-04-25T03:00:00","2024-04-25T04:00:00","2024-04-25T05:00:00","2024-04-25T06:00:00","2024-04-25T07:00:00","2024-04-25T08:00:00","2024-04-25T09:00:00","2024-04-25T10:00:00","2024-04-25T11:00:00","2024-04-25T12:00:00","2024-04-25T13:00:00","2024-04-25T14:00:00","2024-04-25T15:00:00","2024-04-25T16:00:00","2024-04-25T17:00:00","2024-04-25T18:00:00","2024-04-25T19:00:00","2024-04-25T20:00:00","2024-04-25T21:00:00","2024-04-25T22:00:00","2024-04-25T23:00:00"],"y":[441844.19,447136.9,443833.27,428247.77,408251.46,390072.9,377540.49,368034.89,363413.99,364943.8,375840.72,397480.07,416249.12,419529.52,418158.39,419094.24,420068.72,420225.67,421496.6,423872.17,427662.58,432328.2,439046.68,443160.03,445629.43,449096.62,443797.09,426675.55,405948.14,388609.04,374009.5,362310.76,356329.61,355970.79,363259.52,382846.18,402339.84,412009.95,418008.15,423772.72,427175.54,431228.63,435344.74,439532.21,444719.26,450908.89,457094.02,461059.04,461404.46,460745.94,454455.66,437894.5,417135.38,395629.83,379750.7,368398.18,362191.02,361578.9,370253.0,389670.61,408531.65,415630.73,419980.95,425100.87,429521.96,433420.45,437961.0,441691.16,445854.93,450979.92,455711.53,458997.59],"type":"scatter","xaxis":"x","yaxis":"y"}],                        {"template":{"data":{"barpolar":[{"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"#C8D4E3","linecolor":"#C8D4E3","minorgridcolor":"#C8D4E3","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"#C8D4E3","linecolor":"#C8D4E3","minorgridcolor":"#C8D4E3","startlinecolor":"#2a3f5f"},"type":"carpet"}],"choropleth":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"choropleth"}],"contourcarpet":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"contourcarpet"}],"contour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"contour"}],"heatmapgl":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmapgl"}],"heatmap":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmap"}],"histogram2dcontour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2dcontour"}],"histogram2d":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2d"}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"mesh3d":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"mesh3d"}],"parcoords":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"parcoords"}],"pie":[{"automargin":true,"type":"pie"}],"scatter3d":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatter3d"}],"scattercarpet":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattercarpet"}],"scattergeo":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergeo"}],"scattergl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergl"}],"scattermapbox":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermapbox"}],"scatterpolargl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolargl"}],"scatterpolar":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolar"}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"scatterternary":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterternary"}],"surface":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"surface"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}]},"layout":{"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"autotypenumbers":"strict","coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]],"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]},"colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"geo":{"bgcolor":"white","lakecolor":"white","landcolor":"white","showlakes":true,"showland":true,"subunitcolor":"#C8D4E3"},"hoverlabel":{"align":"left"},"hovermode":"closest","mapbox":{"style":"light"},"margin":{"b":0,"l":0,"r":0,"t":30},"paper_bgcolor":"white","plot_bgcolor":"white","polar":{"angularaxis":{"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":""},"bgcolor":"white","radialaxis":{"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":""}},"scene":{"xaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"},"yaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"},"zaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"ternary":{"aaxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""},"baxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""},"bgcolor":"white","caxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""}},"title":{"x":0.05},"xaxis":{"automargin":true,"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":"","title":{"standoff":15},"zerolinecolor":"#EBF0F8","zerolinewidth":2},"yaxis":{"automargin":true,"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":"","title":{"standoff":15},"zerolinecolor":"#EBF0F8","zerolinewidth":2}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"showticklabels":true,"visible":true},"yaxis":{"anchor":"x","domain":[0.0,1.0]},"annotations":[{"font":{"size":10},"showarrow":false,"text":"unique_id=1","x":0.5,"xanchor":"center","xref":"paper","y":1.0,"yanchor":"bottom","yref":"paper"},{"font":{"size":10},"showarrow":false,"text":"Time [ds]","x":0.5,"xanchor":"center","xref":"paper","y":0,"yanchor":"top","yref":"paper","yshift":-30},{"font":{"size":10},"showarrow":false,"text":"Target [y]","textangle":-90,"x":0,"xanchor":"right","xref":"paper","xshift":-40,"y":0.5,"yanchor":"middle","yref":"paper"}],"margin":{"l":60,"r":10,"t":20,"b":50},"font":{"size":10},"autosize":true,"height":200},                        {"responsive": true}                    ).then(function(){
+                            
+var gd = document.getElementById('d07c71bd-43dc-4d51-935e-72e192e05d1e');
+var x = new MutationObserver(function (mutations, observer) {{
+        var display = window.getComputedStyle(gd).display;
+        if (!display || display === 'none') {{
+            console.log([gd, 'removed!']);
+            Plotly.purge(gd);
+            observer.disconnect();
+        }}
+}});
+
+// Listen for the removal of the full notebook cells
+var notebookContainer = gd.closest('#notebook-container');
+if (notebookContainer) {{
+    x.observe(notebookContainer, {childList: true});
+}}
+
+// Listen for the clearing of the current output cell
+var outputEl = gd.closest('.output');
+if (outputEl) {{
+    x.observe(outputEl, {childList: true});
+}}
+
+                        })                };                });            </script>        </div>
+</div>
+</div>
+</section>
+<section id="set-the-models" class="level2">
+<h2 class="anchored" data-anchor-id="set-the-models">Set the Models</h2>
+<p>Set the models:</p>
+<div id="05500e86" class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>auto_arima <span class="op">=</span> AutoARIMA()</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>s_naive <span class="op">=</span> SeasonalNaive(season_length<span class="op">=</span><span class="dv">24</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>theta <span class="op">=</span>  DynamicOptimizedTheta(season_length<span class="op">=</span> <span class="dv">24</span>)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>mstl <span class="op">=</span> MSTL(</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    season_length<span class="op">=</span>[<span class="dv">24</span>, <span class="dv">24</span> <span class="op">*</span> <span class="dv">7</span>], </span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    trend_forecaster<span class="op">=</span>AutoARIMA(),</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    alias<span class="op">=</span><span class="st">"MSTL_ARIMA_trend"</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>stats_models <span class="op">=</span> [</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>   auto_arima,</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>   s_naive,</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>   theta,</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>   mstl</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>sf <span class="op">=</span> StatsForecast( </span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    models<span class="op">=</span>stats_models,</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    freq<span class="op">=</span><span class="st">"h"</span>, </span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    fallback_model <span class="op">=</span> AutoARIMA(),</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>    n_jobs<span class="op">=</span> <span class="op">-</span><span class="dv">1</span>,</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="1a5a9b3b" class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>forecasts_stats <span class="op">=</span> sf.forecast(df<span class="op">=</span>train, h<span class="op">=</span><span class="dv">72</span>, level<span class="op">=</span>[<span class="dv">95</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/opt/forecasting-poc/lib/python3.10/site-packages/statsforecast/core.py:492: FutureWarning:
+
+In a future version the predictions will have the id as a column. You can set the `NIXTLA_ID_AS_COL` environment variable to adopt the new behavior and to suppress this warning.
+</code></pre>
+</div>
+</div>
+<div id="91a7c028" class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>forecasts_stats.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="21">
+<div>
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ds</th>
+<th data-quarto-table-cell-role="th">AutoARIMA</th>
+<th data-quarto-table-cell-role="th">AutoARIMA-lo-95</th>
+<th data-quarto-table-cell-role="th">AutoARIMA-hi-95</th>
+<th data-quarto-table-cell-role="th">SeasonalNaive</th>
+<th data-quarto-table-cell-role="th">SeasonalNaive-lo-95</th>
+<th data-quarto-table-cell-role="th">SeasonalNaive-hi-95</th>
+<th data-quarto-table-cell-role="th">DynamicOptimizedTheta</th>
+<th data-quarto-table-cell-role="th">DynamicOptimizedTheta-lo-95</th>
+<th data-quarto-table-cell-role="th">DynamicOptimizedTheta-hi-95</th>
+<th data-quarto-table-cell-role="th">MSTL_ARIMA_trend</th>
+<th data-quarto-table-cell-role="th">MSTL_ARIMA_trend-lo-95</th>
+<th data-quarto-table-cell-role="th">MSTL_ARIMA_trend-hi-95</th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">unique_id</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">1</td>
+<td>2024-04-23 00:00:00</td>
+<td>441782.00000</td>
+<td>433129.18750</td>
+<td>450434.81250</td>
+<td>421082.59375</td>
+<td>347799.03125</td>
+<td>494366.15625</td>
+<td>438476.87500</td>
+<td>423830.15625</td>
+<td>455920.84375</td>
+<td>447210.62500</td>
+<td>444114.84375</td>
+<td>450306.43750</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>2024-04-23 01:00:00</td>
+<td>444155.65625</td>
+<td>421518.93750</td>
+<td>466792.40625</td>
+<td>429728.31250</td>
+<td>356444.75000</td>
+<td>503011.87500</td>
+<td>435782.43750</td>
+<td>411024.31250</td>
+<td>458975.06250</td>
+<td>448354.50000</td>
+<td>443145.62500</td>
+<td>453563.37500</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">1</td>
+<td>2024-04-23 02:00:00</td>
+<td>445304.81250</td>
+<td>404940.46875</td>
+<td>485669.15625</td>
+<td>430690.96875</td>
+<td>357407.40625</td>
+<td>503974.53125</td>
+<td>428324.37500</td>
+<td>396393.78125</td>
+<td>456607.96875</td>
+<td>441677.78125</td>
+<td>434246.87500</td>
+<td>449108.65625</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>2024-04-23 03:00:00</td>
+<td>445594.12500</td>
+<td>385722.96875</td>
+<td>505465.25000</td>
+<td>420094.59375</td>
+<td>346811.03125</td>
+<td>493378.15625</td>
+<td>414728.09375</td>
+<td>382661.28125</td>
+<td>446589.25000</td>
+<td>424103.62500</td>
+<td>414574.18750</td>
+<td>433633.06250</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">1</td>
+<td>2024-04-23 04:00:00</td>
+<td>445355.68750</td>
+<td>365746.09375</td>
+<td>524965.31250</td>
+<td>403292.37500</td>
+<td>330008.81250</td>
+<td>476575.93750</td>
+<td>396965.03125</td>
+<td>360224.62500</td>
+<td>431502.50000</td>
+<td>401796.06250</td>
+<td>390396.56250</td>
+<td>413195.53125</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</div>
+<div id="4d685a80" class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>sf.plot(test, forecasts_stats, models <span class="op">=</span> [<span class="st">"AutoARIMA"</span>], level<span class="op">=</span>[<span class="dv">95</span>])</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>sf.plot(test, forecasts_stats, engine <span class="op">=</span> <span class="st">"plotly"</span>, level<span class="op">=</span>[<span class="dv">95</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/opt/forecasting-poc/lib/python3.10/site-packages/statsforecast/core.py:1447: FutureWarning:
+
+Passing the ids as the index is deprecated. Please provide them as a column instead.
+
+/opt/forecasting-poc/lib/python3.10/site-packages/statsforecast/core.py:1447: FutureWarning:
+
+Passing the ids as the index is deprecated. Please provide them as a column instead.
+</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>                            <div id="9394340c-c815-41bf-8324-4be43354524e" class="plotly-graph-div" style="height:200px; width:100%;"></div>            <script type="text/javascript">                require(["plotly"], function(Plotly) {                    window.PLOTLYENV=window.PLOTLYENV || {};                                    if (document.getElementById("9394340c-c815-41bf-8324-4be43354524e")) {                    Plotly.newPlot(                        "9394340c-c815-41bf-8324-4be43354524e",                        [{"legendgroup":"y","line":{"color":"#393b79","width":1},"mode":"lines","name":"y","showlegend":true,"x":["2024-04-23T00:00:00","2024-04-23T01:00:00","2024-04-23T02:00:00","2024-04-23T03:00:00","2024-04-23T04:00:00","2024-04-23T05:00:00","2024-04-23T06:00:00","2024-04-23T07:00:00","2024-04-23T08:00:00","2024-04-23T09:00:00","2024-04-23T10:00:00","2024-04-23T11:00:00","2024-04-23T12:00:00","2024-04-23T13:00:00","2024-04-23T14:00:00","2024-04-23T15:00:00","2024-04-23T16:00:00","2024-04-23T17:00:00","2024-04-23T18:00:00","2024-04-23T19:00:00","2024-04-23T20:00:00","2024-04-23T21:00:00","2024-04-23T22:00:00","2024-04-23T23:00:00","2024-04-24T00:00:00","2024-04-24T01:00:00","2024-04-24T02:00:00","2024-04-24T03:00:00","2024-04-24T04:00:00","2024-04-24T05:00:00","2024-04-24T06:00:00","2024-04-24T07:00:00","2024-04-24T08:00:00","2024-04-24T09:00:00","2024-04-24T10:00:00","2024-04-24T11:00:00","2024-04-24T12:00:00","2024-04-24T13:00:00","2024-04-24T14:00:00","2024-04-24T15:00:00","2024-04-24T16:00:00","2024-04-24T17:00:00","2024-04-24T18:00:00","2024-04-24T19:00:00","2024-04-24T20:00:00","2024-04-24T21:00:00","2024-04-24T22:00:00","2024-04-24T23:00:00","2024-04-25T00:00:00","2024-04-25T01:00:00","2024-04-25T02:00:00","2024-04-25T03:00:00","2024-04-25T04:00:00","2024-04-25T05:00:00","2024-04-25T06:00:00","2024-04-25T07:00:00","2024-04-25T08:00:00","2024-04-25T09:00:00","2024-04-25T10:00:00","2024-04-25T11:00:00","2024-04-25T12:00:00","2024-04-25T13:00:00","2024-04-25T14:00:00","2024-04-25T15:00:00","2024-04-25T16:00:00","2024-04-25T17:00:00","2024-04-25T18:00:00","2024-04-25T19:00:00","2024-04-25T20:00:00","2024-04-25T21:00:00","2024-04-25T22:00:00","2024-04-25T23:00:00","2024-04-23T00:00:00","2024-04-23T01:00:00","2024-04-23T02:00:00","2024-04-23T03:00:00","2024-04-23T04:00:00","2024-04-23T05:00:00","2024-04-23T06:00:00","2024-04-23T07:00:00","2024-04-23T08:00:00","2024-04-23T09:00:00","2024-04-23T10:00:00","2024-04-23T11:00:00","2024-04-23T12:00:00","2024-04-23T13:00:00","2024-04-23T14:00:00","2024-04-23T15:00:00","2024-04-23T16:00:00","2024-04-23T17:00:00","2024-04-23T18:00:00","2024-04-23T19:00:00","2024-04-23T20:00:00","2024-04-23T21:00:00","2024-04-23T22:00:00","2024-04-23T23:00:00","2024-04-24T00:00:00","2024-04-24T01:00:00","2024-04-24T02:00:00","2024-04-24T03:00:00","2024-04-24T04:00:00","2024-04-24T05:00:00","2024-04-24T06:00:00","2024-04-24T07:00:00","2024-04-24T08:00:00","2024-04-24T09:00:00","2024-04-24T10:00:00","2024-04-24T11:00:00","2024-04-24T12:00:00","2024-04-24T13:00:00","2024-04-24T14:00:00","2024-04-24T15:00:00","2024-04-24T16:00:00","2024-04-24T17:00:00","2024-04-24T18:00:00","2024-04-24T19:00:00","2024-04-24T20:00:00","2024-04-24T21:00:00","2024-04-24T22:00:00","2024-04-24T23:00:00","2024-04-25T00:00:00","2024-04-25T01:00:00","2024-04-25T02:00:00","2024-04-25T03:00:00","2024-04-25T04:00:00","2024-04-25T05:00:00","2024-04-25T06:00:00","2024-04-25T07:00:00","2024-04-25T08:00:00","2024-04-25T09:00:00","2024-04-25T10:00:00","2024-04-25T11:00:00","2024-04-25T12:00:00","2024-04-25T13:00:00","2024-04-25T14:00:00","2024-04-25T15:00:00","2024-04-25T16:00:00","2024-04-25T17:00:00","2024-04-25T18:00:00","2024-04-25T19:00:00","2024-04-25T20:00:00","2024-04-25T21:00:00","2024-04-25T22:00:00","2024-04-25T23:00:00"],"y":[441844.19,447136.9,443833.27,428247.77,408251.46,390072.9,377540.49,368034.89,363413.99,364943.8,375840.72,397480.07,416249.12,419529.52,418158.39,419094.24,420068.72,420225.67,421496.6,423872.17,427662.58,432328.2,439046.68,443160.03,445629.43,449096.62,443797.09,426675.55,405948.14,388609.04,374009.5,362310.76,356329.61,355970.79,363259.52,382846.18,402339.84,412009.95,418008.15,423772.72,427175.54,431228.63,435344.74,439532.21,444719.26,450908.89,457094.02,461059.04,461404.46,460745.94,454455.66,437894.5,417135.38,395629.83,379750.7,368398.18,362191.02,361578.9,370253.0,389670.61,408531.65,415630.73,419980.95,425100.87,429521.96,433420.45,437961.0,441691.16,445854.93,450979.92,455711.53,458997.59,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],"type":"scatter","xaxis":"x","yaxis":"y"},{"legendgroup":"AutoARIMA","line":{"color":"#8ca252","width":1},"mode":"lines","name":"AutoARIMA","showlegend":true,"x":["2024-04-23T00:00:00","2024-04-23T01:00:00","2024-04-23T02:00:00","2024-04-23T03:00:00","2024-04-23T04:00:00","2024-04-23T05:00:00","2024-04-23T06:00:00","2024-04-23T07:00:00","2024-04-23T08:00:00","2024-04-23T09:00:00","2024-04-23T10:00:00","2024-04-23T11:00:00","2024-04-23T12:00:00","2024-04-23T13:00:00","2024-04-23T14:00:00","2024-04-23T15:00:00","2024-04-23T16:00:00","2024-04-23T17:00:00","2024-04-23T18:00:00","2024-04-23T19:00:00","2024-04-23T20:00:00","2024-04-23T21:00:00","2024-04-23T22:00:00","2024-04-23T23:00:00","2024-04-24T00:00:00","2024-04-24T01:00:00","2024-04-24T02:00:00","2024-04-24T03:00:00","2024-04-24T04:00:00","2024-04-24T05:00:00","2024-04-24T06:00:00","2024-04-24T07:00:00","2024-04-24T08:00:00","2024-04-24T09:00:00","2024-04-24T10:00:00","2024-04-24T11:00:00","2024-04-24T12:00:00","2024-04-24T13:00:00","2024-04-24T14:00:00","2024-04-24T15:00:00","2024-04-24T16:00:00","2024-04-24T17:00:00","2024-04-24T18:00:00","2024-04-24T19:00:00","2024-04-24T20:00:00","2024-04-24T21:00:00","2024-04-24T22:00:00","2024-04-24T23:00:00","2024-04-25T00:00:00","2024-04-25T01:00:00","2024-04-25T02:00:00","2024-04-25T03:00:00","2024-04-25T04:00:00","2024-04-25T05:00:00","2024-04-25T06:00:00","2024-04-25T07:00:00","2024-04-25T08:00:00","2024-04-25T09:00:00","2024-04-25T10:00:00","2024-04-25T11:00:00","2024-04-25T12:00:00","2024-04-25T13:00:00","2024-04-25T14:00:00","2024-04-25T15:00:00","2024-04-25T16:00:00","2024-04-25T17:00:00","2024-04-25T18:00:00","2024-04-25T19:00:00","2024-04-25T20:00:00","2024-04-25T21:00:00","2024-04-25T22:00:00","2024-04-25T23:00:00","2024-04-23T00:00:00","2024-04-23T01:00:00","2024-04-23T02:00:00","2024-04-23T03:00:00","2024-04-23T04:00:00","2024-04-23T05:00:00","2024-04-23T06:00:00","2024-04-23T07:00:00","2024-04-23T08:00:00","2024-04-23T09:00:00","2024-04-23T10:00:00","2024-04-23T11:00:00","2024-04-23T12:00:00","2024-04-23T13:00:00","2024-04-23T14:00:00","2024-04-23T15:00:00","2024-04-23T16:00:00","2024-04-23T17:00:00","2024-04-23T18:00:00","2024-04-23T19:00:00","2024-04-23T20:00:00","2024-04-23T21:00:00","2024-04-23T22:00:00","2024-04-23T23:00:00","2024-04-24T00:00:00","2024-04-24T01:00:00","2024-04-24T02:00:00","2024-04-24T03:00:00","2024-04-24T04:00:00","2024-04-24T05:00:00","2024-04-24T06:00:00","2024-04-24T07:00:00","2024-04-24T08:00:00","2024-04-24T09:00:00","2024-04-24T10:00:00","2024-04-24T11:00:00","2024-04-24T12:00:00","2024-04-24T13:00:00","2024-04-24T14:00:00","2024-04-24T15:00:00","2024-04-24T16:00:00","2024-04-24T17:00:00","2024-04-24T18:00:00","2024-04-24T19:00:00","2024-04-24T20:00:00","2024-04-24T21:00:00","2024-04-24T22:00:00","2024-04-24T23:00:00","2024-04-25T00:00:00","2024-04-25T01:00:00","2024-04-25T02:00:00","2024-04-25T03:00:00","2024-04-25T04:00:00","2024-04-25T05:00:00","2024-04-25T06:00:00","2024-04-25T07:00:00","2024-04-25T08:00:00","2024-04-25T09:00:00","2024-04-25T10:00:00","2024-04-25T11:00:00","2024-04-25T12:00:00","2024-04-25T13:00:00","2024-04-25T14:00:00","2024-04-25T15:00:00","2024-04-25T16:00:00","2024-04-25T17:00:00","2024-04-25T18:00:00","2024-04-25T19:00:00","2024-04-25T20:00:00","2024-04-25T21:00:00","2024-04-25T22:00:00","2024-04-25T23:00:00"],"y":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,441782.0,444155.65625,445304.8125,445594.125,445355.6875,444854.46875,444278.5625,443745.125,443314.0,443003.90625,442807.71875,442704.59375,442669.15625,442677.09375,442708.375,442748.21875,442787.0625,442819.59375,442843.84375,442859.8125,442868.75,442872.46875,442872.625,442870.8125,442868.09375,442865.3125,442862.875,442861.0,442859.71875,442858.96875,442858.625,442858.53125,442858.625,442858.8125,442859.0,442859.1875,442859.34375,442859.4375,442859.5,442859.53125,442859.53125,442859.53125,442859.53125,442859.5,442859.5,442859.5,442859.46875,442859.46875,442859.46875,442859.46875,442859.46875,442859.46875,442859.46875,442859.46875,442859.46875,442859.46875,442859.46875,442859.46875,442859.46875,442859.46875,442859.46875,442859.46875,442859.46875,442859.46875,442859.46875,442859.46875,442859.46875,442859.46875,442859.46875,442859.46875,442859.46875,442859.46875],"type":"scatter","xaxis":"x","yaxis":"y"},{"fill":"toself","fillcolor":"#8ca252","legendgroup":"AutoARIMA_level_95","line":{"color":"#8ca252","width":1},"mode":"lines","name":"AutoARIMA_level_95","opacity":0.050000000000000044,"showlegend":true,"x":["2024-04-23T00:00:00.000000000","2024-04-23T01:00:00.000000000","2024-04-23T02:00:00.000000000","2024-04-23T03:00:00.000000000","2024-04-23T04:00:00.000000000","2024-04-23T05:00:00.000000000","2024-04-23T06:00:00.000000000","2024-04-23T07:00:00.000000000","2024-04-23T08:00:00.000000000","2024-04-23T09:00:00.000000000","2024-04-23T10:00:00.000000000","2024-04-23T11:00:00.000000000","2024-04-23T12:00:00.000000000","2024-04-23T13:00:00.000000000","2024-04-23T14:00:00.000000000","2024-04-23T15:00:00.000000000","2024-04-23T16:00:00.000000000","2024-04-23T17:00:00.000000000","2024-04-23T18:00:00.000000000","2024-04-23T19:00:00.000000000","2024-04-23T20:00:00.000000000","2024-04-23T21:00:00.000000000","2024-04-23T22:00:00.000000000","2024-04-23T23:00:00.000000000","2024-04-24T00:00:00.000000000","2024-04-24T01:00:00.000000000","2024-04-24T02:00:00.000000000","2024-04-24T03:00:00.000000000","2024-04-24T04:00:00.000000000","2024-04-24T05:00:00.000000000","2024-04-24T06:00:00.000000000","2024-04-24T07:00:00.000000000","2024-04-24T08:00:00.000000000","2024-04-24T09:00:00.000000000","2024-04-24T10:00:00.000000000","2024-04-24T11:00:00.000000000","2024-04-24T12:00:00.000000000","2024-04-24T13:00:00.000000000","2024-04-24T14:00:00.000000000","2024-04-24T15:00:00.000000000","2024-04-24T16:00:00.000000000","2024-04-24T17:00:00.000000000","2024-04-24T18:00:00.000000000","2024-04-24T19:00:00.000000000","2024-04-24T20:00:00.000000000","2024-04-24T21:00:00.000000000","2024-04-24T22:00:00.000000000","2024-04-24T23:00:00.000000000","2024-04-25T00:00:00.000000000","2024-04-25T01:00:00.000000000","2024-04-25T02:00:00.000000000","2024-04-25T03:00:00.000000000","2024-04-25T04:00:00.000000000","2024-04-25T05:00:00.000000000","2024-04-25T06:00:00.000000000","2024-04-25T07:00:00.000000000","2024-04-25T08:00:00.000000000","2024-04-25T09:00:00.000000000","2024-04-25T10:00:00.000000000","2024-04-25T11:00:00.000000000","2024-04-25T12:00:00.000000000","2024-04-25T13:00:00.000000000","2024-04-25T14:00:00.000000000","2024-04-25T15:00:00.000000000","2024-04-25T16:00:00.000000000","2024-04-25T17:00:00.000000000","2024-04-25T18:00:00.000000000","2024-04-25T19:00:00.000000000","2024-04-25T20:00:00.000000000","2024-04-25T21:00:00.000000000","2024-04-25T22:00:00.000000000","2024-04-25T23:00:00.000000000","2024-04-23T00:00:00.000000000","2024-04-23T01:00:00.000000000","2024-04-23T02:00:00.000000000","2024-04-23T03:00:00.000000000","2024-04-23T04:00:00.000000000","2024-04-23T05:00:00.000000000","2024-04-23T06:00:00.000000000","2024-04-23T07:00:00.000000000","2024-04-23T08:00:00.000000000","2024-04-23T09:00:00.000000000","2024-04-23T10:00:00.000000000","2024-04-23T11:00:00.000000000","2024-04-23T12:00:00.000000000","2024-04-23T13:00:00.000000000","2024-04-23T14:00:00.000000000","2024-04-23T15:00:00.000000000","2024-04-23T16:00:00.000000000","2024-04-23T17:00:00.000000000","2024-04-23T18:00:00.000000000","2024-04-23T19:00:00.000000000","2024-04-23T20:00:00.000000000","2024-04-23T21:00:00.000000000","2024-04-23T22:00:00.000000000","2024-04-23T23:00:00.000000000","2024-04-24T00:00:00.000000000","2024-04-24T01:00:00.000000000","2024-04-24T02:00:00.000000000","2024-04-24T03:00:00.000000000","2024-04-24T04:00:00.000000000","2024-04-24T05:00:00.000000000","2024-04-24T06:00:00.000000000","2024-04-24T07:00:00.000000000","2024-04-24T08:00:00.000000000","2024-04-24T09:00:00.000000000","2024-04-24T10:00:00.000000000","2024-04-24T11:00:00.000000000","2024-04-24T12:00:00.000000000","2024-04-24T13:00:00.000000000","2024-04-24T14:00:00.000000000","2024-04-24T15:00:00.000000000","2024-04-24T16:00:00.000000000","2024-04-24T17:00:00.000000000","2024-04-24T18:00:00.000000000","2024-04-24T19:00:00.000000000","2024-04-24T20:00:00.000000000","2024-04-24T21:00:00.000000000","2024-04-24T22:00:00.000000000","2024-04-24T23:00:00.000000000","2024-04-25T00:00:00.000000000","2024-04-25T01:00:00.000000000","2024-04-25T02:00:00.000000000","2024-04-25T03:00:00.000000000","2024-04-25T04:00:00.000000000","2024-04-25T05:00:00.000000000","2024-04-25T06:00:00.000000000","2024-04-25T07:00:00.000000000","2024-04-25T08:00:00.000000000","2024-04-25T09:00:00.000000000","2024-04-25T10:00:00.000000000","2024-04-25T11:00:00.000000000","2024-04-25T12:00:00.000000000","2024-04-25T13:00:00.000000000","2024-04-25T14:00:00.000000000","2024-04-25T15:00:00.000000000","2024-04-25T16:00:00.000000000","2024-04-25T17:00:00.000000000","2024-04-25T18:00:00.000000000","2024-04-25T19:00:00.000000000","2024-04-25T20:00:00.000000000","2024-04-25T21:00:00.000000000","2024-04-25T22:00:00.000000000","2024-04-25T23:00:00.000000000","2024-04-25T23:00:00.000000000","2024-04-25T22:00:00.000000000","2024-04-25T21:00:00.000000000","2024-04-25T20:00:00.000000000","2024-04-25T19:00:00.000000000","2024-04-25T18:00:00.000000000","2024-04-25T17:00:00.000000000","2024-04-25T16:00:00.000000000","2024-04-25T15:00:00.000000000","2024-04-25T14:00:00.000000000","2024-04-25T13:00:00.000000000","2024-04-25T12:00:00.000000000","2024-04-25T11:00:00.000000000","2024-04-25T10:00:00.000000000","2024-04-25T09:00:00.000000000","2024-04-25T08:00:00.000000000","2024-04-25T07:00:00.000000000","2024-04-25T06:00:00.000000000","2024-04-25T05:00:00.000000000","2024-04-25T04:00:00.000000000","2024-04-25T03:00:00.000000000","2024-04-25T02:00:00.000000000","2024-04-25T01:00:00.000000000","2024-04-25T00:00:00.000000000","2024-04-24T23:00:00.000000000","2024-04-24T22:00:00.000000000","2024-04-24T21:00:00.000000000","2024-04-24T20:00:00.000000000","2024-04-24T19:00:00.000000000","2024-04-24T18:00:00.000000000","2024-04-24T17:00:00.000000000","2024-04-24T16:00:00.000000000","2024-04-24T15:00:00.000000000","2024-04-24T14:00:00.000000000","2024-04-24T13:00:00.000000000","2024-04-24T12:00:00.000000000","2024-04-24T11:00:00.000000000","2024-04-24T10:00:00.000000000","2024-04-24T09:00:00.000000000","2024-04-24T08:00:00.000000000","2024-04-24T07:00:00.000000000","2024-04-24T06:00:00.000000000","2024-04-24T05:00:00.000000000","2024-04-24T04:00:00.000000000","2024-04-24T03:00:00.000000000","2024-04-24T02:00:00.000000000","2024-04-24T01:00:00.000000000","2024-04-24T00:00:00.000000000","2024-04-23T23:00:00.000000000","2024-04-23T22:00:00.000000000","2024-04-23T21:00:00.000000000","2024-04-23T20:00:00.000000000","2024-04-23T19:00:00.000000000","2024-04-23T18:00:00.000000000","2024-04-23T17:00:00.000000000","2024-04-23T16:00:00.000000000","2024-04-23T15:00:00.000000000","2024-04-23T14:00:00.000000000","2024-04-23T13:00:00.000000000","2024-04-23T12:00:00.000000000","2024-04-23T11:00:00.000000000","2024-04-23T10:00:00.000000000","2024-04-23T09:00:00.000000000","2024-04-23T08:00:00.000000000","2024-04-23T07:00:00.000000000","2024-04-23T06:00:00.000000000","2024-04-23T05:00:00.000000000","2024-04-23T04:00:00.000000000","2024-04-23T03:00:00.000000000","2024-04-23T02:00:00.000000000","2024-04-23T01:00:00.000000000","2024-04-23T00:00:00.000000000","2024-04-25T23:00:00.000000000","2024-04-25T22:00:00.000000000","2024-04-25T21:00:00.000000000","2024-04-25T20:00:00.000000000","2024-04-25T19:00:00.000000000","2024-04-25T18:00:00.000000000","2024-04-25T17:00:00.000000000","2024-04-25T16:00:00.000000000","2024-04-25T15:00:00.000000000","2024-04-25T14:00:00.000000000","2024-04-25T13:00:00.000000000","2024-04-25T12:00:00.000000000","2024-04-25T11:00:00.000000000","2024-04-25T10:00:00.000000000","2024-04-25T09:00:00.000000000","2024-04-25T08:00:00.000000000","2024-04-25T07:00:00.000000000","2024-04-25T06:00:00.000000000","2024-04-25T05:00:00.000000000","2024-04-25T04:00:00.000000000","2024-04-25T03:00:00.000000000","2024-04-25T02:00:00.000000000","2024-04-25T01:00:00.000000000","2024-04-25T00:00:00.000000000","2024-04-24T23:00:00.000000000","2024-04-24T22:00:00.000000000","2024-04-24T21:00:00.000000000","2024-04-24T20:00:00.000000000","2024-04-24T19:00:00.000000000","2024-04-24T18:00:00.000000000","2024-04-24T17:00:00.000000000","2024-04-24T16:00:00.000000000","2024-04-24T15:00:00.000000000","2024-04-24T14:00:00.000000000","2024-04-24T13:00:00.000000000","2024-04-24T12:00:00.000000000","2024-04-24T11:00:00.000000000","2024-04-24T10:00:00.000000000","2024-04-24T09:00:00.000000000","2024-04-24T08:00:00.000000000","2024-04-24T07:00:00.000000000","2024-04-24T06:00:00.000000000","2024-04-24T05:00:00.000000000","2024-04-24T04:00:00.000000000","2024-04-24T03:00:00.000000000","2024-04-24T02:00:00.000000000","2024-04-24T01:00:00.000000000","2024-04-24T00:00:00.000000000","2024-04-23T23:00:00.000000000","2024-04-23T22:00:00.000000000","2024-04-23T21:00:00.000000000","2024-04-23T20:00:00.000000000","2024-04-23T19:00:00.000000000","2024-04-23T18:00:00.000000000","2024-04-23T17:00:00.000000000","2024-04-23T16:00:00.000000000","2024-04-23T15:00:00.000000000","2024-04-23T14:00:00.000000000","2024-04-23T13:00:00.000000000","2024-04-23T12:00:00.000000000","2024-04-23T11:00:00.000000000","2024-04-23T10:00:00.000000000","2024-04-23T09:00:00.000000000","2024-04-23T08:00:00.000000000","2024-04-23T07:00:00.000000000","2024-04-23T06:00:00.000000000","2024-04-23T05:00:00.000000000","2024-04-23T04:00:00.000000000","2024-04-23T03:00:00.000000000","2024-04-23T02:00:00.000000000","2024-04-23T01:00:00.000000000","2024-04-23T00:00:00.000000000"],"y":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,450434.8125,466792.40625,485669.15625,505465.25,524965.3125,543394.375,560359.4375,575748.625,589629.625,602166.1875,613558.0625,624004.375,633683.875,642746.8125,651314.0,659479.375,667313.9375,674870.4375,682187.25,689292.5625,696206.9375,702946.0625,709522.125,715945.4375,722224.9375,728368.625,734384.0,740278.125,746057.625,751728.625,757296.9375,762768.0,768146.6875,773437.625,778645.0625,783772.875,788824.625,793803.6875,798713.125,803555.6875,808334.1875,813051.0,817708.5,822308.8125,826854.0625,831346.125,835786.8125,840177.875,844520.9375,848817.5625,853069.1875,857277.1875,861442.875,865567.5,869652.3125,873698.375,877706.75,881678.5625,885614.75,889516.25,893383.9375,897218.6875,901021.375,904792.75,908533.625,912244.625,915926.5625,919580.0,923205.6875,926804.25,930376.1875,933922.1875,-48203.2265625,-44657.24609375,-41085.27734375,-37486.75,-33861.0625,-30207.5859375,-26525.671875,-22814.6484375,-19073.8125,-15302.43359375,-11499.7529296875,-7664.9755859375,-3797.2763671875,104.20782470703125,4040.3779296875,8012.17578125,12020.5869140625,16066.642578125,20151.423828125,24276.06640625,28441.7578125,32649.751953125,36901.36328125,41197.98046875,45541.0625,49932.15234375,54372.875,58864.95703125,63410.21484375,68010.5703125,72668.078125,77384.90625,82163.359375,87005.90625,91915.1796875,96894.03125,101945.5234375,107072.96875,112280.0078125,117570.59375,122949.09375,128420.265625,133989.296875,139661.828125,145443.859375,151341.75,157362.015625,163511.28125,169796.140625,176223.140625,182798.875,189530.578125,196427.03125,203500.390625,210768.796875,218260.15625,226017.078125,234102.75,242607.390625,251654.421875,261404.796875,272057.375,283841.65625,296998.3125,311741.65625,328197.71875,346314.5625,365746.09375,385722.96875,404940.46875,421518.9375,433129.1875,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],"type":"scatter","xaxis":"x","yaxis":"y"},{"legendgroup":"SeasonalNaive","line":{"color":"#e7ba52","width":1},"mode":"lines","name":"SeasonalNaive","showlegend":true,"x":["2024-04-23T00:00:00","2024-04-23T01:00:00","2024-04-23T02:00:00","2024-04-23T03:00:00","2024-04-23T04:00:00","2024-04-23T05:00:00","2024-04-23T06:00:00","2024-04-23T07:00:00","2024-04-23T08:00:00","2024-04-23T09:00:00","2024-04-23T10:00:00","2024-04-23T11:00:00","2024-04-23T12:00:00","2024-04-23T13:00:00","2024-04-23T14:00:00","2024-04-23T15:00:00","2024-04-23T16:00:00","2024-04-23T17:00:00","2024-04-23T18:00:00","2024-04-23T19:00:00","2024-04-23T20:00:00","2024-04-23T21:00:00","2024-04-23T22:00:00","2024-04-23T23:00:00","2024-04-24T00:00:00","2024-04-24T01:00:00","2024-04-24T02:00:00","2024-04-24T03:00:00","2024-04-24T04:00:00","2024-04-24T05:00:00","2024-04-24T06:00:00","2024-04-24T07:00:00","2024-04-24T08:00:00","2024-04-24T09:00:00","2024-04-24T10:00:00","2024-04-24T11:00:00","2024-04-24T12:00:00","2024-04-24T13:00:00","2024-04-24T14:00:00","2024-04-24T15:00:00","2024-04-24T16:00:00","2024-04-24T17:00:00","2024-04-24T18:00:00","2024-04-24T19:00:00","2024-04-24T20:00:00","2024-04-24T21:00:00","2024-04-24T22:00:00","2024-04-24T23:00:00","2024-04-25T00:00:00","2024-04-25T01:00:00","2024-04-25T02:00:00","2024-04-25T03:00:00","2024-04-25T04:00:00","2024-04-25T05:00:00","2024-04-25T06:00:00","2024-04-25T07:00:00","2024-04-25T08:00:00","2024-04-25T09:00:00","2024-04-25T10:00:00","2024-04-25T11:00:00","2024-04-25T12:00:00","2024-04-25T13:00:00","2024-04-25T14:00:00","2024-04-25T15:00:00","2024-04-25T16:00:00","2024-04-25T17:00:00","2024-04-25T18:00:00","2024-04-25T19:00:00","2024-04-25T20:00:00","2024-04-25T21:00:00","2024-04-25T22:00:00","2024-04-25T23:00:00","2024-04-23T00:00:00","2024-04-23T01:00:00","2024-04-23T02:00:00","2024-04-23T03:00:00","2024-04-23T04:00:00","2024-04-23T05:00:00","2024-04-23T06:00:00","2024-04-23T07:00:00","2024-04-23T08:00:00","2024-04-23T09:00:00","2024-04-23T10:00:00","2024-04-23T11:00:00","2024-04-23T12:00:00","2024-04-23T13:00:00","2024-04-23T14:00:00","2024-04-23T15:00:00","2024-04-23T16:00:00","2024-04-23T17:00:00","2024-04-23T18:00:00","2024-04-23T19:00:00","2024-04-23T20:00:00","2024-04-23T21:00:00","2024-04-23T22:00:00","2024-04-23T23:00:00","2024-04-24T00:00:00","2024-04-24T01:00:00","2024-04-24T02:00:00","2024-04-24T03:00:00","2024-04-24T04:00:00","2024-04-24T05:00:00","2024-04-24T06:00:00","2024-04-24T07:00:00","2024-04-24T08:00:00","2024-04-24T09:00:00","2024-04-24T10:00:00","2024-04-24T11:00:00","2024-04-24T12:00:00","2024-04-24T13:00:00","2024-04-24T14:00:00","2024-04-24T15:00:00","2024-04-24T16:00:00","2024-04-24T17:00:00","2024-04-24T18:00:00","2024-04-24T19:00:00","2024-04-24T20:00:00","2024-04-24T21:00:00","2024-04-24T22:00:00","2024-04-24T23:00:00","2024-04-25T00:00:00","2024-04-25T01:00:00","2024-04-25T02:00:00","2024-04-25T03:00:00","2024-04-25T04:00:00","2024-04-25T05:00:00","2024-04-25T06:00:00","2024-04-25T07:00:00","2024-04-25T08:00:00","2024-04-25T09:00:00","2024-04-25T10:00:00","2024-04-25T11:00:00","2024-04-25T12:00:00","2024-04-25T13:00:00","2024-04-25T14:00:00","2024-04-25T15:00:00","2024-04-25T16:00:00","2024-04-25T17:00:00","2024-04-25T18:00:00","2024-04-25T19:00:00","2024-04-25T20:00:00","2024-04-25T21:00:00","2024-04-25T22:00:00","2024-04-25T23:00:00"],"y":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,421082.59375,429728.3125,430690.96875,420094.59375,403292.375,387708.3125,375095.3125,366883.21875,362420.84375,365098.4375,376356.5,401521.1875,422824.25,428248.78125,427097.625,425142.4375,424012.1875,422601.1875,420773.875,421307.96875,422066.6875,424957.40625,432202.34375,437856.34375,421082.59375,429728.3125,430690.96875,420094.59375,403292.375,387708.3125,375095.3125,366883.21875,362420.84375,365098.4375,376356.5,401521.1875,422824.25,428248.78125,427097.625,425142.4375,424012.1875,422601.1875,420773.875,421307.96875,422066.6875,424957.40625,432202.34375,437856.34375,421082.59375,429728.3125,430690.96875,420094.59375,403292.375,387708.3125,375095.3125,366883.21875,362420.84375,365098.4375,376356.5,401521.1875,422824.25,428248.78125,427097.625,425142.4375,424012.1875,422601.1875,420773.875,421307.96875,422066.6875,424957.40625,432202.34375,437856.34375],"type":"scatter","xaxis":"x","yaxis":"y"},{"fill":"toself","fillcolor":"#e7ba52","legendgroup":"SeasonalNaive_level_95","line":{"color":"#e7ba52","width":1},"mode":"lines","name":"SeasonalNaive_level_95","opacity":0.050000000000000044,"showlegend":true,"x":["2024-04-23T00:00:00.000000000","2024-04-23T01:00:00.000000000","2024-04-23T02:00:00.000000000","2024-04-23T03:00:00.000000000","2024-04-23T04:00:00.000000000","2024-04-23T05:00:00.000000000","2024-04-23T06:00:00.000000000","2024-04-23T07:00:00.000000000","2024-04-23T08:00:00.000000000","2024-04-23T09:00:00.000000000","2024-04-23T10:00:00.000000000","2024-04-23T11:00:00.000000000","2024-04-23T12:00:00.000000000","2024-04-23T13:00:00.000000000","2024-04-23T14:00:00.000000000","2024-04-23T15:00:00.000000000","2024-04-23T16:00:00.000000000","2024-04-23T17:00:00.000000000","2024-04-23T18:00:00.000000000","2024-04-23T19:00:00.000000000","2024-04-23T20:00:00.000000000","2024-04-23T21:00:00.000000000","2024-04-23T22:00:00.000000000","2024-04-23T23:00:00.000000000","2024-04-24T00:00:00.000000000","2024-04-24T01:00:00.000000000","2024-04-24T02:00:00.000000000","2024-04-24T03:00:00.000000000","2024-04-24T04:00:00.000000000","2024-04-24T05:00:00.000000000","2024-04-24T06:00:00.000000000","2024-04-24T07:00:00.000000000","2024-04-24T08:00:00.000000000","2024-04-24T09:00:00.000000000","2024-04-24T10:00:00.000000000","2024-04-24T11:00:00.000000000","2024-04-24T12:00:00.000000000","2024-04-24T13:00:00.000000000","2024-04-24T14:00:00.000000000","2024-04-24T15:00:00.000000000","2024-04-24T16:00:00.000000000","2024-04-24T17:00:00.000000000","2024-04-24T18:00:00.000000000","2024-04-24T19:00:00.000000000","2024-04-24T20:00:00.000000000","2024-04-24T21:00:00.000000000","2024-04-24T22:00:00.000000000","2024-04-24T23:00:00.000000000","2024-04-25T00:00:00.000000000","2024-04-25T01:00:00.000000000","2024-04-25T02:00:00.000000000","2024-04-25T03:00:00.000000000","2024-04-25T04:00:00.000000000","2024-04-25T05:00:00.000000000","2024-04-25T06:00:00.000000000","2024-04-25T07:00:00.000000000","2024-04-25T08:00:00.000000000","2024-04-25T09:00:00.000000000","2024-04-25T10:00:00.000000000","2024-04-25T11:00:00.000000000","2024-04-25T12:00:00.000000000","2024-04-25T13:00:00.000000000","2024-04-25T14:00:00.000000000","2024-04-25T15:00:00.000000000","2024-04-25T16:00:00.000000000","2024-04-25T17:00:00.000000000","2024-04-25T18:00:00.000000000","2024-04-25T19:00:00.000000000","2024-04-25T20:00:00.000000000","2024-04-25T21:00:00.000000000","2024-04-25T22:00:00.000000000","2024-04-25T23:00:00.000000000","2024-04-23T00:00:00.000000000","2024-04-23T01:00:00.000000000","2024-04-23T02:00:00.000000000","2024-04-23T03:00:00.000000000","2024-04-23T04:00:00.000000000","2024-04-23T05:00:00.000000000","2024-04-23T06:00:00.000000000","2024-04-23T07:00:00.000000000","2024-04-23T08:00:00.000000000","2024-04-23T09:00:00.000000000","2024-04-23T10:00:00.000000000","2024-04-23T11:00:00.000000000","2024-04-23T12:00:00.000000000","2024-04-23T13:00:00.000000000","2024-04-23T14:00:00.000000000","2024-04-23T15:00:00.000000000","2024-04-23T16:00:00.000000000","2024-04-23T17:00:00.000000000","2024-04-23T18:00:00.000000000","2024-04-23T19:00:00.000000000","2024-04-23T20:00:00.000000000","2024-04-23T21:00:00.000000000","2024-04-23T22:00:00.000000000","2024-04-23T23:00:00.000000000","2024-04-24T00:00:00.000000000","2024-04-24T01:00:00.000000000","2024-04-24T02:00:00.000000000","2024-04-24T03:00:00.000000000","2024-04-24T04:00:00.000000000","2024-04-24T05:00:00.000000000","2024-04-24T06:00:00.000000000","2024-04-24T07:00:00.000000000","2024-04-24T08:00:00.000000000","2024-04-24T09:00:00.000000000","2024-04-24T10:00:00.000000000","2024-04-24T11:00:00.000000000","2024-04-24T12:00:00.000000000","2024-04-24T13:00:00.000000000","2024-04-24T14:00:00.000000000","2024-04-24T15:00:00.000000000","2024-04-24T16:00:00.000000000","2024-04-24T17:00:00.000000000","2024-04-24T18:00:00.000000000","2024-04-24T19:00:00.000000000","2024-04-24T20:00:00.000000000","2024-04-24T21:00:00.000000000","2024-04-24T22:00:00.000000000","2024-04-24T23:00:00.000000000","2024-04-25T00:00:00.000000000","2024-04-25T01:00:00.000000000","2024-04-25T02:00:00.000000000","2024-04-25T03:00:00.000000000","2024-04-25T04:00:00.000000000","2024-04-25T05:00:00.000000000","2024-04-25T06:00:00.000000000","2024-04-25T07:00:00.000000000","2024-04-25T08:00:00.000000000","2024-04-25T09:00:00.000000000","2024-04-25T10:00:00.000000000","2024-04-25T11:00:00.000000000","2024-04-25T12:00:00.000000000","2024-04-25T13:00:00.000000000","2024-04-25T14:00:00.000000000","2024-04-25T15:00:00.000000000","2024-04-25T16:00:00.000000000","2024-04-25T17:00:00.000000000","2024-04-25T18:00:00.000000000","2024-04-25T19:00:00.000000000","2024-04-25T20:00:00.000000000","2024-04-25T21:00:00.000000000","2024-04-25T22:00:00.000000000","2024-04-25T23:00:00.000000000","2024-04-25T23:00:00.000000000","2024-04-25T22:00:00.000000000","2024-04-25T21:00:00.000000000","2024-04-25T20:00:00.000000000","2024-04-25T19:00:00.000000000","2024-04-25T18:00:00.000000000","2024-04-25T17:00:00.000000000","2024-04-25T16:00:00.000000000","2024-04-25T15:00:00.000000000","2024-04-25T14:00:00.000000000","2024-04-25T13:00:00.000000000","2024-04-25T12:00:00.000000000","2024-04-25T11:00:00.000000000","2024-04-25T10:00:00.000000000","2024-04-25T09:00:00.000000000","2024-04-25T08:00:00.000000000","2024-04-25T07:00:00.000000000","2024-04-25T06:00:00.000000000","2024-04-25T05:00:00.000000000","2024-04-25T04:00:00.000000000","2024-04-25T03:00:00.000000000","2024-04-25T02:00:00.000000000","2024-04-25T01:00:00.000000000","2024-04-25T00:00:00.000000000","2024-04-24T23:00:00.000000000","2024-04-24T22:00:00.000000000","2024-04-24T21:00:00.000000000","2024-04-24T20:00:00.000000000","2024-04-24T19:00:00.000000000","2024-04-24T18:00:00.000000000","2024-04-24T17:00:00.000000000","2024-04-24T16:00:00.000000000","2024-04-24T15:00:00.000000000","2024-04-24T14:00:00.000000000","2024-04-24T13:00:00.000000000","2024-04-24T12:00:00.000000000","2024-04-24T11:00:00.000000000","2024-04-24T10:00:00.000000000","2024-04-24T09:00:00.000000000","2024-04-24T08:00:00.000000000","2024-04-24T07:00:00.000000000","2024-04-24T06:00:00.000000000","2024-04-24T05:00:00.000000000","2024-04-24T04:00:00.000000000","2024-04-24T03:00:00.000000000","2024-04-24T02:00:00.000000000","2024-04-24T01:00:00.000000000","2024-04-24T00:00:00.000000000","2024-04-23T23:00:00.000000000","2024-04-23T22:00:00.000000000","2024-04-23T21:00:00.000000000","2024-04-23T20:00:00.000000000","2024-04-23T19:00:00.000000000","2024-04-23T18:00:00.000000000","2024-04-23T17:00:00.000000000","2024-04-23T16:00:00.000000000","2024-04-23T15:00:00.000000000","2024-04-23T14:00:00.000000000","2024-04-23T13:00:00.000000000","2024-04-23T12:00:00.000000000","2024-04-23T11:00:00.000000000","2024-04-23T10:00:00.000000000","2024-04-23T09:00:00.000000000","2024-04-23T08:00:00.000000000","2024-04-23T07:00:00.000000000","2024-04-23T06:00:00.000000000","2024-04-23T05:00:00.000000000","2024-04-23T04:00:00.000000000","2024-04-23T03:00:00.000000000","2024-04-23T02:00:00.000000000","2024-04-23T01:00:00.000000000","2024-04-23T00:00:00.000000000","2024-04-25T23:00:00.000000000","2024-04-25T22:00:00.000000000","2024-04-25T21:00:00.000000000","2024-04-25T20:00:00.000000000","2024-04-25T19:00:00.000000000","2024-04-25T18:00:00.000000000","2024-04-25T17:00:00.000000000","2024-04-25T16:00:00.000000000","2024-04-25T15:00:00.000000000","2024-04-25T14:00:00.000000000","2024-04-25T13:00:00.000000000","2024-04-25T12:00:00.000000000","2024-04-25T11:00:00.000000000","2024-04-25T10:00:00.000000000","2024-04-25T09:00:00.000000000","2024-04-25T08:00:00.000000000","2024-04-25T07:00:00.000000000","2024-04-25T06:00:00.000000000","2024-04-25T05:00:00.000000000","2024-04-25T04:00:00.000000000","2024-04-25T03:00:00.000000000","2024-04-25T02:00:00.000000000","2024-04-25T01:00:00.000000000","2024-04-25T00:00:00.000000000","2024-04-24T23:00:00.000000000","2024-04-24T22:00:00.000000000","2024-04-24T21:00:00.000000000","2024-04-24T20:00:00.000000000","2024-04-24T19:00:00.000000000","2024-04-24T18:00:00.000000000","2024-04-24T17:00:00.000000000","2024-04-24T16:00:00.000000000","2024-04-24T15:00:00.000000000","2024-04-24T14:00:00.000000000","2024-04-24T13:00:00.000000000","2024-04-24T12:00:00.000000000","2024-04-24T11:00:00.000000000","2024-04-24T10:00:00.000000000","2024-04-24T09:00:00.000000000","2024-04-24T08:00:00.000000000","2024-04-24T07:00:00.000000000","2024-04-24T06:00:00.000000000","2024-04-24T05:00:00.000000000","2024-04-24T04:00:00.000000000","2024-04-24T03:00:00.000000000","2024-04-24T02:00:00.000000000","2024-04-24T01:00:00.000000000","2024-04-24T00:00:00.000000000","2024-04-23T23:00:00.000000000","2024-04-23T22:00:00.000000000","2024-04-23T21:00:00.000000000","2024-04-23T20:00:00.000000000","2024-04-23T19:00:00.000000000","2024-04-23T18:00:00.000000000","2024-04-23T17:00:00.000000000","2024-04-23T16:00:00.000000000","2024-04-23T15:00:00.000000000","2024-04-23T14:00:00.000000000","2024-04-23T13:00:00.000000000","2024-04-23T12:00:00.000000000","2024-04-23T11:00:00.000000000","2024-04-23T10:00:00.000000000","2024-04-23T09:00:00.000000000","2024-04-23T08:00:00.000000000","2024-04-23T07:00:00.000000000","2024-04-23T06:00:00.000000000","2024-04-23T05:00:00.000000000","2024-04-23T04:00:00.000000000","2024-04-23T03:00:00.000000000","2024-04-23T02:00:00.000000000","2024-04-23T01:00:00.000000000","2024-04-23T00:00:00.000000000"],"y":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,494366.15625,503011.875,503974.53125,493378.15625,476575.9375,460991.875,448378.875,440166.78125,435704.40625,438382.0,449640.0625,474804.75,496107.8125,501532.34375,500381.1875,498426.0,497295.75,495884.75,494057.4375,494591.53125,495350.25,498240.96875,505485.90625,511139.90625,494366.15625,503011.875,503974.53125,493378.15625,476575.9375,460991.875,448378.875,440166.78125,435704.40625,438382.0,449640.0625,474804.75,496107.8125,501532.34375,500381.1875,498426.0,497295.75,495884.75,494057.4375,494591.53125,495350.25,498240.96875,505485.90625,511139.90625,494366.15625,503011.875,503974.53125,493378.15625,476575.9375,460991.875,448378.875,440166.78125,435704.40625,438382.0,449640.0625,474804.75,496107.8125,501532.34375,500381.1875,498426.0,497295.75,495884.75,494057.4375,494591.53125,495350.25,498240.96875,505485.90625,511139.90625,364572.78125,358918.78125,351673.84375,348783.125,348024.40625,347490.3125,349317.625,350728.625,351858.875,353814.0625,354965.21875,349540.6875,328237.625,303072.9375,291814.875,289137.28125,293599.65625,301811.75,314424.75,330008.8125,346811.03125,357407.40625,356444.75,347799.03125,364572.78125,358918.78125,351673.84375,348783.125,348024.40625,347490.3125,349317.625,350728.625,351858.875,353814.0625,354965.21875,349540.6875,328237.625,303072.9375,291814.875,289137.28125,293599.65625,301811.75,314424.75,330008.8125,346811.03125,357407.40625,356444.75,347799.03125,364572.78125,358918.78125,351673.84375,348783.125,348024.40625,347490.3125,349317.625,350728.625,351858.875,353814.0625,354965.21875,349540.6875,328237.625,303072.9375,291814.875,289137.28125,293599.65625,301811.75,314424.75,330008.8125,346811.03125,357407.40625,356444.75,347799.03125,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],"type":"scatter","xaxis":"x","yaxis":"y"},{"legendgroup":"DynamicOptimizedTheta","line":{"color":"#e7969c","width":1},"mode":"lines","name":"DynamicOptimizedTheta","showlegend":true,"x":["2024-04-23T00:00:00","2024-04-23T01:00:00","2024-04-23T02:00:00","2024-04-23T03:00:00","2024-04-23T04:00:00","2024-04-23T05:00:00","2024-04-23T06:00:00","2024-04-23T07:00:00","2024-04-23T08:00:00","2024-04-23T09:00:00","2024-04-23T10:00:00","2024-04-23T11:00:00","2024-04-23T12:00:00","2024-04-23T13:00:00","2024-04-23T14:00:00","2024-04-23T15:00:00","2024-04-23T16:00:00","2024-04-23T17:00:00","2024-04-23T18:00:00","2024-04-23T19:00:00","2024-04-23T20:00:00","2024-04-23T21:00:00","2024-04-23T22:00:00","2024-04-23T23:00:00","2024-04-24T00:00:00","2024-04-24T01:00:00","2024-04-24T02:00:00","2024-04-24T03:00:00","2024-04-24T04:00:00","2024-04-24T05:00:00","2024-04-24T06:00:00","2024-04-24T07:00:00","2024-04-24T08:00:00","2024-04-24T09:00:00","2024-04-24T10:00:00","2024-04-24T11:00:00","2024-04-24T12:00:00","2024-04-24T13:00:00","2024-04-24T14:00:00","2024-04-24T15:00:00","2024-04-24T16:00:00","2024-04-24T17:00:00","2024-04-24T18:00:00","2024-04-24T19:00:00","2024-04-24T20:00:00","2024-04-24T21:00:00","2024-04-24T22:00:00","2024-04-24T23:00:00","2024-04-25T00:00:00","2024-04-25T01:00:00","2024-04-25T02:00:00","2024-04-25T03:00:00","2024-04-25T04:00:00","2024-04-25T05:00:00","2024-04-25T06:00:00","2024-04-25T07:00:00","2024-04-25T08:00:00","2024-04-25T09:00:00","2024-04-25T10:00:00","2024-04-25T11:00:00","2024-04-25T12:00:00","2024-04-25T13:00:00","2024-04-25T14:00:00","2024-04-25T15:00:00","2024-04-25T16:00:00","2024-04-25T17:00:00","2024-04-25T18:00:00","2024-04-25T19:00:00","2024-04-25T20:00:00","2024-04-25T21:00:00","2024-04-25T22:00:00","2024-04-25T23:00:00","2024-04-23T00:00:00","2024-04-23T01:00:00","2024-04-23T02:00:00","2024-04-23T03:00:00","2024-04-23T04:00:00","2024-04-23T05:00:00","2024-04-23T06:00:00","2024-04-23T07:00:00","2024-04-23T08:00:00","2024-04-23T09:00:00","2024-04-23T10:00:00","2024-04-23T11:00:00","2024-04-23T12:00:00","2024-04-23T13:00:00","2024-04-23T14:00:00","2024-04-23T15:00:00","2024-04-23T16:00:00","2024-04-23T17:00:00","2024-04-23T18:00:00","2024-04-23T19:00:00","2024-04-23T20:00:00","2024-04-23T21:00:00","2024-04-23T22:00:00","2024-04-23T23:00:00","2024-04-24T00:00:00","2024-04-24T01:00:00","2024-04-24T02:00:00","2024-04-24T03:00:00","2024-04-24T04:00:00","2024-04-24T05:00:00","2024-04-24T06:00:00","2024-04-24T07:00:00","2024-04-24T08:00:00","2024-04-24T09:00:00","2024-04-24T10:00:00","2024-04-24T11:00:00","2024-04-24T12:00:00","2024-04-24T13:00:00","2024-04-24T14:00:00","2024-04-24T15:00:00","2024-04-24T16:00:00","2024-04-24T17:00:00","2024-04-24T18:00:00","2024-04-24T19:00:00","2024-04-24T20:00:00","2024-04-24T21:00:00","2024-04-24T22:00:00","2024-04-24T23:00:00","2024-04-25T00:00:00","2024-04-25T01:00:00","2024-04-25T02:00:00","2024-04-25T03:00:00","2024-04-25T04:00:00","2024-04-25T05:00:00","2024-04-25T06:00:00","2024-04-25T07:00:00","2024-04-25T08:00:00","2024-04-25T09:00:00","2024-04-25T10:00:00","2024-04-25T11:00:00","2024-04-25T12:00:00","2024-04-25T13:00:00","2024-04-25T14:00:00","2024-04-25T15:00:00","2024-04-25T16:00:00","2024-04-25T17:00:00","2024-04-25T18:00:00","2024-04-25T19:00:00","2024-04-25T20:00:00","2024-04-25T21:00:00","2024-04-25T22:00:00","2024-04-25T23:00:00"],"y":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,438476.875,435782.4375,428324.375,414728.09375,396965.03125,378508.65625,363065.8125,351107.0625,343019.9375,339427.40625,341587.625,350912.90625,364791.9375,378474.34375,389633.0625,399092.46875,407236.9375,413963.15625,419343.40625,423513.59375,427048.9375,430683.25,434685.75,437830.75,438476.875,435782.4375,428324.375,414728.09375,396965.03125,378508.65625,363065.8125,351107.0625,343019.9375,339427.40625,341587.625,350912.90625,364791.9375,378474.34375,389633.0625,399092.46875,407236.9375,413963.15625,419343.40625,423513.59375,427048.9375,430683.25,434685.75,437830.75,438476.875,435782.4375,428324.375,414728.09375,396965.03125,378508.65625,363065.8125,351107.0625,343019.9375,339427.40625,341587.625,350912.90625,364791.9375,378474.34375,389633.0625,399092.46875,407236.9375,413963.15625,419343.40625,423513.59375,427048.9375,430683.25,434685.75,437830.75],"type":"scatter","xaxis":"x","yaxis":"y"},{"fill":"toself","fillcolor":"#e7969c","legendgroup":"DynamicOptimizedTheta_level_95","line":{"color":"#e7969c","width":1},"mode":"lines","name":"DynamicOptimizedTheta_level_95","opacity":0.050000000000000044,"showlegend":true,"x":["2024-04-23T00:00:00.000000000","2024-04-23T01:00:00.000000000","2024-04-23T02:00:00.000000000","2024-04-23T03:00:00.000000000","2024-04-23T04:00:00.000000000","2024-04-23T05:00:00.000000000","2024-04-23T06:00:00.000000000","2024-04-23T07:00:00.000000000","2024-04-23T08:00:00.000000000","2024-04-23T09:00:00.000000000","2024-04-23T10:00:00.000000000","2024-04-23T11:00:00.000000000","2024-04-23T12:00:00.000000000","2024-04-23T13:00:00.000000000","2024-04-23T14:00:00.000000000","2024-04-23T15:00:00.000000000","2024-04-23T16:00:00.000000000","2024-04-23T17:00:00.000000000","2024-04-23T18:00:00.000000000","2024-04-23T19:00:00.000000000","2024-04-23T20:00:00.000000000","2024-04-23T21:00:00.000000000","2024-04-23T22:00:00.000000000","2024-04-23T23:00:00.000000000","2024-04-24T00:00:00.000000000","2024-04-24T01:00:00.000000000","2024-04-24T02:00:00.000000000","2024-04-24T03:00:00.000000000","2024-04-24T04:00:00.000000000","2024-04-24T05:00:00.000000000","2024-04-24T06:00:00.000000000","2024-04-24T07:00:00.000000000","2024-04-24T08:00:00.000000000","2024-04-24T09:00:00.000000000","2024-04-24T10:00:00.000000000","2024-04-24T11:00:00.000000000","2024-04-24T12:00:00.000000000","2024-04-24T13:00:00.000000000","2024-04-24T14:00:00.000000000","2024-04-24T15:00:00.000000000","2024-04-24T16:00:00.000000000","2024-04-24T17:00:00.000000000","2024-04-24T18:00:00.000000000","2024-04-24T19:00:00.000000000","2024-04-24T20:00:00.000000000","2024-04-24T21:00:00.000000000","2024-04-24T22:00:00.000000000","2024-04-24T23:00:00.000000000","2024-04-25T00:00:00.000000000","2024-04-25T01:00:00.000000000","2024-04-25T02:00:00.000000000","2024-04-25T03:00:00.000000000","2024-04-25T04:00:00.000000000","2024-04-25T05:00:00.000000000","2024-04-25T06:00:00.000000000","2024-04-25T07:00:00.000000000","2024-04-25T08:00:00.000000000","2024-04-25T09:00:00.000000000","2024-04-25T10:00:00.000000000","2024-04-25T11:00:00.000000000","2024-04-25T12:00:00.000000000","2024-04-25T13:00:00.000000000","2024-04-25T14:00:00.000000000","2024-04-25T15:00:00.000000000","2024-04-25T16:00:00.000000000","2024-04-25T17:00:00.000000000","2024-04-25T18:00:00.000000000","2024-04-25T19:00:00.000000000","2024-04-25T20:00:00.000000000","2024-04-25T21:00:00.000000000","2024-04-25T22:00:00.000000000","2024-04-25T23:00:00.000000000","2024-04-23T00:00:00.000000000","2024-04-23T01:00:00.000000000","2024-04-23T02:00:00.000000000","2024-04-23T03:00:00.000000000","2024-04-23T04:00:00.000000000","2024-04-23T05:00:00.000000000","2024-04-23T06:00:00.000000000","2024-04-23T07:00:00.000000000","2024-04-23T08:00:00.000000000","2024-04-23T09:00:00.000000000","2024-04-23T10:00:00.000000000","2024-04-23T11:00:00.000000000","2024-04-23T12:00:00.000000000","2024-04-23T13:00:00.000000000","2024-04-23T14:00:00.000000000","2024-04-23T15:00:00.000000000","2024-04-23T16:00:00.000000000","2024-04-23T17:00:00.000000000","2024-04-23T18:00:00.000000000","2024-04-23T19:00:00.000000000","2024-04-23T20:00:00.000000000","2024-04-23T21:00:00.000000000","2024-04-23T22:00:00.000000000","2024-04-23T23:00:00.000000000","2024-04-24T00:00:00.000000000","2024-04-24T01:00:00.000000000","2024-04-24T02:00:00.000000000","2024-04-24T03:00:00.000000000","2024-04-24T04:00:00.000000000","2024-04-24T05:00:00.000000000","2024-04-24T06:00:00.000000000","2024-04-24T07:00:00.000000000","2024-04-24T08:00:00.000000000","2024-04-24T09:00:00.000000000","2024-04-24T10:00:00.000000000","2024-04-24T11:00:00.000000000","2024-04-24T12:00:00.000000000","2024-04-24T13:00:00.000000000","2024-04-24T14:00:00.000000000","2024-04-24T15:00:00.000000000","2024-04-24T16:00:00.000000000","2024-04-24T17:00:00.000000000","2024-04-24T18:00:00.000000000","2024-04-24T19:00:00.000000000","2024-04-24T20:00:00.000000000","2024-04-24T21:00:00.000000000","2024-04-24T22:00:00.000000000","2024-04-24T23:00:00.000000000","2024-04-25T00:00:00.000000000","2024-04-25T01:00:00.000000000","2024-04-25T02:00:00.000000000","2024-04-25T03:00:00.000000000","2024-04-25T04:00:00.000000000","2024-04-25T05:00:00.000000000","2024-04-25T06:00:00.000000000","2024-04-25T07:00:00.000000000","2024-04-25T08:00:00.000000000","2024-04-25T09:00:00.000000000","2024-04-25T10:00:00.000000000","2024-04-25T11:00:00.000000000","2024-04-25T12:00:00.000000000","2024-04-25T13:00:00.000000000","2024-04-25T14:00:00.000000000","2024-04-25T15:00:00.000000000","2024-04-25T16:00:00.000000000","2024-04-25T17:00:00.000000000","2024-04-25T18:00:00.000000000","2024-04-25T19:00:00.000000000","2024-04-25T20:00:00.000000000","2024-04-25T21:00:00.000000000","2024-04-25T22:00:00.000000000","2024-04-25T23:00:00.000000000","2024-04-25T23:00:00.000000000","2024-04-25T22:00:00.000000000","2024-04-25T21:00:00.000000000","2024-04-25T20:00:00.000000000","2024-04-25T19:00:00.000000000","2024-04-25T18:00:00.000000000","2024-04-25T17:00:00.000000000","2024-04-25T16:00:00.000000000","2024-04-25T15:00:00.000000000","2024-04-25T14:00:00.000000000","2024-04-25T13:00:00.000000000","2024-04-25T12:00:00.000000000","2024-04-25T11:00:00.000000000","2024-04-25T10:00:00.000000000","2024-04-25T09:00:00.000000000","2024-04-25T08:00:00.000000000","2024-04-25T07:00:00.000000000","2024-04-25T06:00:00.000000000","2024-04-25T05:00:00.000000000","2024-04-25T04:00:00.000000000","2024-04-25T03:00:00.000000000","2024-04-25T02:00:00.000000000","2024-04-25T01:00:00.000000000","2024-04-25T00:00:00.000000000","2024-04-24T23:00:00.000000000","2024-04-24T22:00:00.000000000","2024-04-24T21:00:00.000000000","2024-04-24T20:00:00.000000000","2024-04-24T19:00:00.000000000","2024-04-24T18:00:00.000000000","2024-04-24T17:00:00.000000000","2024-04-24T16:00:00.000000000","2024-04-24T15:00:00.000000000","2024-04-24T14:00:00.000000000","2024-04-24T13:00:00.000000000","2024-04-24T12:00:00.000000000","2024-04-24T11:00:00.000000000","2024-04-24T10:00:00.000000000","2024-04-24T09:00:00.000000000","2024-04-24T08:00:00.000000000","2024-04-24T07:00:00.000000000","2024-04-24T06:00:00.000000000","2024-04-24T05:00:00.000000000","2024-04-24T04:00:00.000000000","2024-04-24T03:00:00.000000000","2024-04-24T02:00:00.000000000","2024-04-24T01:00:00.000000000","2024-04-24T00:00:00.000000000","2024-04-23T23:00:00.000000000","2024-04-23T22:00:00.000000000","2024-04-23T21:00:00.000000000","2024-04-23T20:00:00.000000000","2024-04-23T19:00:00.000000000","2024-04-23T18:00:00.000000000","2024-04-23T17:00:00.000000000","2024-04-23T16:00:00.000000000","2024-04-23T15:00:00.000000000","2024-04-23T14:00:00.000000000","2024-04-23T13:00:00.000000000","2024-04-23T12:00:00.000000000","2024-04-23T11:00:00.000000000","2024-04-23T10:00:00.000000000","2024-04-23T09:00:00.000000000","2024-04-23T08:00:00.000000000","2024-04-23T07:00:00.000000000","2024-04-23T06:00:00.000000000","2024-04-23T05:00:00.000000000","2024-04-23T04:00:00.000000000","2024-04-23T03:00:00.000000000","2024-04-23T02:00:00.000000000","2024-04-23T01:00:00.000000000","2024-04-23T00:00:00.000000000","2024-04-25T23:00:00.000000000","2024-04-25T22:00:00.000000000","2024-04-25T21:00:00.000000000","2024-04-25T20:00:00.000000000","2024-04-25T19:00:00.000000000","2024-04-25T18:00:00.000000000","2024-04-25T17:00:00.000000000","2024-04-25T16:00:00.000000000","2024-04-25T15:00:00.000000000","2024-04-25T14:00:00.000000000","2024-04-25T13:00:00.000000000","2024-04-25T12:00:00.000000000","2024-04-25T11:00:00.000000000","2024-04-25T10:00:00.000000000","2024-04-25T09:00:00.000000000","2024-04-25T08:00:00.000000000","2024-04-25T07:00:00.000000000","2024-04-25T06:00:00.000000000","2024-04-25T05:00:00.000000000","2024-04-25T04:00:00.000000000","2024-04-25T03:00:00.000000000","2024-04-25T02:00:00.000000000","2024-04-25T01:00:00.000000000","2024-04-25T00:00:00.000000000","2024-04-24T23:00:00.000000000","2024-04-24T22:00:00.000000000","2024-04-24T21:00:00.000000000","2024-04-24T20:00:00.000000000","2024-04-24T19:00:00.000000000","2024-04-24T18:00:00.000000000","2024-04-24T17:00:00.000000000","2024-04-24T16:00:00.000000000","2024-04-24T15:00:00.000000000","2024-04-24T14:00:00.000000000","2024-04-24T13:00:00.000000000","2024-04-24T12:00:00.000000000","2024-04-24T11:00:00.000000000","2024-04-24T10:00:00.000000000","2024-04-24T09:00:00.000000000","2024-04-24T08:00:00.000000000","2024-04-24T07:00:00.000000000","2024-04-24T06:00:00.000000000","2024-04-24T05:00:00.000000000","2024-04-24T04:00:00.000000000","2024-04-24T03:00:00.000000000","2024-04-24T02:00:00.000000000","2024-04-24T01:00:00.000000000","2024-04-24T00:00:00.000000000","2024-04-23T23:00:00.000000000","2024-04-23T22:00:00.000000000","2024-04-23T21:00:00.000000000","2024-04-23T20:00:00.000000000","2024-04-23T19:00:00.000000000","2024-04-23T18:00:00.000000000","2024-04-23T17:00:00.000000000","2024-04-23T16:00:00.000000000","2024-04-23T15:00:00.000000000","2024-04-23T14:00:00.000000000","2024-04-23T13:00:00.000000000","2024-04-23T12:00:00.000000000","2024-04-23T11:00:00.000000000","2024-04-23T10:00:00.000000000","2024-04-23T09:00:00.000000000","2024-04-23T08:00:00.000000000","2024-04-23T07:00:00.000000000","2024-04-23T06:00:00.000000000","2024-04-23T05:00:00.000000000","2024-04-23T04:00:00.000000000","2024-04-23T03:00:00.000000000","2024-04-23T02:00:00.000000000","2024-04-23T01:00:00.000000000","2024-04-23T00:00:00.000000000"],"y":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,455920.84375,458975.0625,456607.96875,446589.25,431502.5,413394.65625,395646.59375,390507.84375,382957.6875,380237.0,379552.15625,394058.8125,410512.8125,428232.125,447210.65625,455898.6875,466542.1875,474176.46875,487656.53125,498501.28125,508865.0,510660.625,519268.40625,527010.0,531161.125,531582.4375,525418.0625,505945.78125,481781.65625,464383.8125,446130.40625,432460.375,413629.59375,414880.28125,418051.46875,436699.125,447374.875,461422.65625,473902.0,486042.15625,497639.625,501998.9375,517723.125,523202.03125,528985.5625,528402.9375,535738.75,548674.625,541676.5625,542513.9375,531651.25,522772.53125,500800.28125,482154.03125,466559.75,449307.21875,439555.1875,432654.9375,431261.65625,442453.59375,465603.5625,483994.75,492971.28125,511982.8125,522991.84375,543427.25,553534.5625,555814.625,566275.875,571809.4375,579746.8125,585156.0625,262981.71875,260052.984375,257350.3125,251250.78125,253444.625,249052.703125,250253.359375,248580.59375,247896.90625,246507.53125,236267.890625,238949.625,235003.1875,225148.5625,229926.28125,228526.34375,233432.171875,243191.234375,249147.984375,258087.484375,273568.84375,283470.6875,280206.84375,285322.71875,286610.75,286130.875,288474.25,278225.34375,284385.96875,278966.90625,282376.5,279152.3125,265504.46875,255248.9375,258869.1875,249390.265625,237989.203125,236474.359375,228588.4375,244947.21875,251845.546875,263366.65625,286917.46875,300506.34375,319000.21875,332424.375,342212.8125,345136.5625,345121.6875,349347.9375,351054.4375,345544.1875,338223.6875,335649.34375,338917.75,336705.09375,332245.4375,329591.4375,322920.625,308121.375,304534.6875,297089.5,297603.625,301910.375,309657.1875,321777.1875,342931.90625,360224.625,382661.28125,396393.78125,411024.3125,423830.15625,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],"type":"scatter","xaxis":"x","yaxis":"y"},{"legendgroup":"MSTL_ARIMA_trend","line":{"color":"#de9ed6","width":1},"mode":"lines","name":"MSTL_ARIMA_trend","showlegend":true,"x":["2024-04-23T00:00:00","2024-04-23T01:00:00","2024-04-23T02:00:00","2024-04-23T03:00:00","2024-04-23T04:00:00","2024-04-23T05:00:00","2024-04-23T06:00:00","2024-04-23T07:00:00","2024-04-23T08:00:00","2024-04-23T09:00:00","2024-04-23T10:00:00","2024-04-23T11:00:00","2024-04-23T12:00:00","2024-04-23T13:00:00","2024-04-23T14:00:00","2024-04-23T15:00:00","2024-04-23T16:00:00","2024-04-23T17:00:00","2024-04-23T18:00:00","2024-04-23T19:00:00","2024-04-23T20:00:00","2024-04-23T21:00:00","2024-04-23T22:00:00","2024-04-23T23:00:00","2024-04-24T00:00:00","2024-04-24T01:00:00","2024-04-24T02:00:00","2024-04-24T03:00:00","2024-04-24T04:00:00","2024-04-24T05:00:00","2024-04-24T06:00:00","2024-04-24T07:00:00","2024-04-24T08:00:00","2024-04-24T09:00:00","2024-04-24T10:00:00","2024-04-24T11:00:00","2024-04-24T12:00:00","2024-04-24T13:00:00","2024-04-24T14:00:00","2024-04-24T15:00:00","2024-04-24T16:00:00","2024-04-24T17:00:00","2024-04-24T18:00:00","2024-04-24T19:00:00","2024-04-24T20:00:00","2024-04-24T21:00:00","2024-04-24T22:00:00","2024-04-24T23:00:00","2024-04-25T00:00:00","2024-04-25T01:00:00","2024-04-25T02:00:00","2024-04-25T03:00:00","2024-04-25T04:00:00","2024-04-25T05:00:00","2024-04-25T06:00:00","2024-04-25T07:00:00","2024-04-25T08:00:00","2024-04-25T09:00:00","2024-04-25T10:00:00","2024-04-25T11:00:00","2024-04-25T12:00:00","2024-04-25T13:00:00","2024-04-25T14:00:00","2024-04-25T15:00:00","2024-04-25T16:00:00","2024-04-25T17:00:00","2024-04-25T18:00:00","2024-04-25T19:00:00","2024-04-25T20:00:00","2024-04-25T21:00:00","2024-04-25T22:00:00","2024-04-25T23:00:00","2024-04-23T00:00:00","2024-04-23T01:00:00","2024-04-23T02:00:00","2024-04-23T03:00:00","2024-04-23T04:00:00","2024-04-23T05:00:00","2024-04-23T06:00:00","2024-04-23T07:00:00","2024-04-23T08:00:00","2024-04-23T09:00:00","2024-04-23T10:00:00","2024-04-23T11:00:00","2024-04-23T12:00:00","2024-04-23T13:00:00","2024-04-23T14:00:00","2024-04-23T15:00:00","2024-04-23T16:00:00","2024-04-23T17:00:00","2024-04-23T18:00:00","2024-04-23T19:00:00","2024-04-23T20:00:00","2024-04-23T21:00:00","2024-04-23T22:00:00","2024-04-23T23:00:00","2024-04-24T00:00:00","2024-04-24T01:00:00","2024-04-24T02:00:00","2024-04-24T03:00:00","2024-04-24T04:00:00","2024-04-24T05:00:00","2024-04-24T06:00:00","2024-04-24T07:00:00","2024-04-24T08:00:00","2024-04-24T09:00:00","2024-04-24T10:00:00","2024-04-24T11:00:00","2024-04-24T12:00:00","2024-04-24T13:00:00","2024-04-24T14:00:00","2024-04-24T15:00:00","2024-04-24T16:00:00","2024-04-24T17:00:00","2024-04-24T18:00:00","2024-04-24T19:00:00","2024-04-24T20:00:00","2024-04-24T21:00:00","2024-04-24T22:00:00","2024-04-24T23:00:00","2024-04-25T00:00:00","2024-04-25T01:00:00","2024-04-25T02:00:00","2024-04-25T03:00:00","2024-04-25T04:00:00","2024-04-25T05:00:00","2024-04-25T06:00:00","2024-04-25T07:00:00","2024-04-25T08:00:00","2024-04-25T09:00:00","2024-04-25T10:00:00","2024-04-25T11:00:00","2024-04-25T12:00:00","2024-04-25T13:00:00","2024-04-25T14:00:00","2024-04-25T15:00:00","2024-04-25T16:00:00","2024-04-25T17:00:00","2024-04-25T18:00:00","2024-04-25T19:00:00","2024-04-25T20:00:00","2024-04-25T21:00:00","2024-04-25T22:00:00","2024-04-25T23:00:00"],"y":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,447210.625,448354.5,441677.78125,424103.625,401796.0625,380511.84375,363519.59375,351496.875,343900.96875,342980.28125,349531.65625,368937.34375,389313.96875,400791.25,407166.375,411909.3125,415881.34375,419740.28125,424133.34375,427960.4375,431151.3125,436133.09375,441637.125,442810.1875,445886.25,445221.65625,438284.0,420613.375,399365.625,378641.78125,361163.625,348844.78125,341404.53125,339954.21875,346033.8125,364900.71875,385216.34375,398175.84375,405820.375,411368.5,416195.625,420266.28125,424612.75,428648.6875,432520.78125,437019.3125,441206.4375,442567.65625,446237.03125,445890.15625,439373.53125,422280.53125,400820.1875,380949.78125,363210.1875,350677.28125,343509.15625,342226.5625,348878.28125,367991.03125,389831.90625,403043.75,410146.34375,415197.28125,420357.125,424260.96875,427994.5625,431634.84375,435127.375,439772.78125,444085.5,445189.96875],"type":"scatter","xaxis":"x","yaxis":"y"},{"fill":"toself","fillcolor":"#de9ed6","legendgroup":"MSTL_ARIMA_trend_level_95","line":{"color":"#de9ed6","width":1},"mode":"lines","name":"MSTL_ARIMA_trend_level_95","opacity":0.050000000000000044,"showlegend":true,"x":["2024-04-23T00:00:00.000000000","2024-04-23T01:00:00.000000000","2024-04-23T02:00:00.000000000","2024-04-23T03:00:00.000000000","2024-04-23T04:00:00.000000000","2024-04-23T05:00:00.000000000","2024-04-23T06:00:00.000000000","2024-04-23T07:00:00.000000000","2024-04-23T08:00:00.000000000","2024-04-23T09:00:00.000000000","2024-04-23T10:00:00.000000000","2024-04-23T11:00:00.000000000","2024-04-23T12:00:00.000000000","2024-04-23T13:00:00.000000000","2024-04-23T14:00:00.000000000","2024-04-23T15:00:00.000000000","2024-04-23T16:00:00.000000000","2024-04-23T17:00:00.000000000","2024-04-23T18:00:00.000000000","2024-04-23T19:00:00.000000000","2024-04-23T20:00:00.000000000","2024-04-23T21:00:00.000000000","2024-04-23T22:00:00.000000000","2024-04-23T23:00:00.000000000","2024-04-24T00:00:00.000000000","2024-04-24T01:00:00.000000000","2024-04-24T02:00:00.000000000","2024-04-24T03:00:00.000000000","2024-04-24T04:00:00.000000000","2024-04-24T05:00:00.000000000","2024-04-24T06:00:00.000000000","2024-04-24T07:00:00.000000000","2024-04-24T08:00:00.000000000","2024-04-24T09:00:00.000000000","2024-04-24T10:00:00.000000000","2024-04-24T11:00:00.000000000","2024-04-24T12:00:00.000000000","2024-04-24T13:00:00.000000000","2024-04-24T14:00:00.000000000","2024-04-24T15:00:00.000000000","2024-04-24T16:00:00.000000000","2024-04-24T17:00:00.000000000","2024-04-24T18:00:00.000000000","2024-04-24T19:00:00.000000000","2024-04-24T20:00:00.000000000","2024-04-24T21:00:00.000000000","2024-04-24T22:00:00.000000000","2024-04-24T23:00:00.000000000","2024-04-25T00:00:00.000000000","2024-04-25T01:00:00.000000000","2024-04-25T02:00:00.000000000","2024-04-25T03:00:00.000000000","2024-04-25T04:00:00.000000000","2024-04-25T05:00:00.000000000","2024-04-25T06:00:00.000000000","2024-04-25T07:00:00.000000000","2024-04-25T08:00:00.000000000","2024-04-25T09:00:00.000000000","2024-04-25T10:00:00.000000000","2024-04-25T11:00:00.000000000","2024-04-25T12:00:00.000000000","2024-04-25T13:00:00.000000000","2024-04-25T14:00:00.000000000","2024-04-25T15:00:00.000000000","2024-04-25T16:00:00.000000000","2024-04-25T17:00:00.000000000","2024-04-25T18:00:00.000000000","2024-04-25T19:00:00.000000000","2024-04-25T20:00:00.000000000","2024-04-25T21:00:00.000000000","2024-04-25T22:00:00.000000000","2024-04-25T23:00:00.000000000","2024-04-23T00:00:00.000000000","2024-04-23T01:00:00.000000000","2024-04-23T02:00:00.000000000","2024-04-23T03:00:00.000000000","2024-04-23T04:00:00.000000000","2024-04-23T05:00:00.000000000","2024-04-23T06:00:00.000000000","2024-04-23T07:00:00.000000000","2024-04-23T08:00:00.000000000","2024-04-23T09:00:00.000000000","2024-04-23T10:00:00.000000000","2024-04-23T11:00:00.000000000","2024-04-23T12:00:00.000000000","2024-04-23T13:00:00.000000000","2024-04-23T14:00:00.000000000","2024-04-23T15:00:00.000000000","2024-04-23T16:00:00.000000000","2024-04-23T17:00:00.000000000","2024-04-23T18:00:00.000000000","2024-04-23T19:00:00.000000000","2024-04-23T20:00:00.000000000","2024-04-23T21:00:00.000000000","2024-04-23T22:00:00.000000000","2024-04-23T23:00:00.000000000","2024-04-24T00:00:00.000000000","2024-04-24T01:00:00.000000000","2024-04-24T02:00:00.000000000","2024-04-24T03:00:00.000000000","2024-04-24T04:00:00.000000000","2024-04-24T05:00:00.000000000","2024-04-24T06:00:00.000000000","2024-04-24T07:00:00.000000000","2024-04-24T08:00:00.000000000","2024-04-24T09:00:00.000000000","2024-04-24T10:00:00.000000000","2024-04-24T11:00:00.000000000","2024-04-24T12:00:00.000000000","2024-04-24T13:00:00.000000000","2024-04-24T14:00:00.000000000","2024-04-24T15:00:00.000000000","2024-04-24T16:00:00.000000000","2024-04-24T17:00:00.000000000","2024-04-24T18:00:00.000000000","2024-04-24T19:00:00.000000000","2024-04-24T20:00:00.000000000","2024-04-24T21:00:00.000000000","2024-04-24T22:00:00.000000000","2024-04-24T23:00:00.000000000","2024-04-25T00:00:00.000000000","2024-04-25T01:00:00.000000000","2024-04-25T02:00:00.000000000","2024-04-25T03:00:00.000000000","2024-04-25T04:00:00.000000000","2024-04-25T05:00:00.000000000","2024-04-25T06:00:00.000000000","2024-04-25T07:00:00.000000000","2024-04-25T08:00:00.000000000","2024-04-25T09:00:00.000000000","2024-04-25T10:00:00.000000000","2024-04-25T11:00:00.000000000","2024-04-25T12:00:00.000000000","2024-04-25T13:00:00.000000000","2024-04-25T14:00:00.000000000","2024-04-25T15:00:00.000000000","2024-04-25T16:00:00.000000000","2024-04-25T17:00:00.000000000","2024-04-25T18:00:00.000000000","2024-04-25T19:00:00.000000000","2024-04-25T20:00:00.000000000","2024-04-25T21:00:00.000000000","2024-04-25T22:00:00.000000000","2024-04-25T23:00:00.000000000","2024-04-25T23:00:00.000000000","2024-04-25T22:00:00.000000000","2024-04-25T21:00:00.000000000","2024-04-25T20:00:00.000000000","2024-04-25T19:00:00.000000000","2024-04-25T18:00:00.000000000","2024-04-25T17:00:00.000000000","2024-04-25T16:00:00.000000000","2024-04-25T15:00:00.000000000","2024-04-25T14:00:00.000000000","2024-04-25T13:00:00.000000000","2024-04-25T12:00:00.000000000","2024-04-25T11:00:00.000000000","2024-04-25T10:00:00.000000000","2024-04-25T09:00:00.000000000","2024-04-25T08:00:00.000000000","2024-04-25T07:00:00.000000000","2024-04-25T06:00:00.000000000","2024-04-25T05:00:00.000000000","2024-04-25T04:00:00.000000000","2024-04-25T03:00:00.000000000","2024-04-25T02:00:00.000000000","2024-04-25T01:00:00.000000000","2024-04-25T00:00:00.000000000","2024-04-24T23:00:00.000000000","2024-04-24T22:00:00.000000000","2024-04-24T21:00:00.000000000","2024-04-24T20:00:00.000000000","2024-04-24T19:00:00.000000000","2024-04-24T18:00:00.000000000","2024-04-24T17:00:00.000000000","2024-04-24T16:00:00.000000000","2024-04-24T15:00:00.000000000","2024-04-24T14:00:00.000000000","2024-04-24T13:00:00.000000000","2024-04-24T12:00:00.000000000","2024-04-24T11:00:00.000000000","2024-04-24T10:00:00.000000000","2024-04-24T09:00:00.000000000","2024-04-24T08:00:00.000000000","2024-04-24T07:00:00.000000000","2024-04-24T06:00:00.000000000","2024-04-24T05:00:00.000000000","2024-04-24T04:00:00.000000000","2024-04-24T03:00:00.000000000","2024-04-24T02:00:00.000000000","2024-04-24T01:00:00.000000000","2024-04-24T00:00:00.000000000","2024-04-23T23:00:00.000000000","2024-04-23T22:00:00.000000000","2024-04-23T21:00:00.000000000","2024-04-23T20:00:00.000000000","2024-04-23T19:00:00.000000000","2024-04-23T18:00:00.000000000","2024-04-23T17:00:00.000000000","2024-04-23T16:00:00.000000000","2024-04-23T15:00:00.000000000","2024-04-23T14:00:00.000000000","2024-04-23T13:00:00.000000000","2024-04-23T12:00:00.000000000","2024-04-23T11:00:00.000000000","2024-04-23T10:00:00.000000000","2024-04-23T09:00:00.000000000","2024-04-23T08:00:00.000000000","2024-04-23T07:00:00.000000000","2024-04-23T06:00:00.000000000","2024-04-23T05:00:00.000000000","2024-04-23T04:00:00.000000000","2024-04-23T03:00:00.000000000","2024-04-23T02:00:00.000000000","2024-04-23T01:00:00.000000000","2024-04-23T00:00:00.000000000","2024-04-25T23:00:00.000000000","2024-04-25T22:00:00.000000000","2024-04-25T21:00:00.000000000","2024-04-25T20:00:00.000000000","2024-04-25T19:00:00.000000000","2024-04-25T18:00:00.000000000","2024-04-25T17:00:00.000000000","2024-04-25T16:00:00.000000000","2024-04-25T15:00:00.000000000","2024-04-25T14:00:00.000000000","2024-04-25T13:00:00.000000000","2024-04-25T12:00:00.000000000","2024-04-25T11:00:00.000000000","2024-04-25T10:00:00.000000000","2024-04-25T09:00:00.000000000","2024-04-25T08:00:00.000000000","2024-04-25T07:00:00.000000000","2024-04-25T06:00:00.000000000","2024-04-25T05:00:00.000000000","2024-04-25T04:00:00.000000000","2024-04-25T03:00:00.000000000","2024-04-25T02:00:00.000000000","2024-04-25T01:00:00.000000000","2024-04-25T00:00:00.000000000","2024-04-24T23:00:00.000000000","2024-04-24T22:00:00.000000000","2024-04-24T21:00:00.000000000","2024-04-24T20:00:00.000000000","2024-04-24T19:00:00.000000000","2024-04-24T18:00:00.000000000","2024-04-24T17:00:00.000000000","2024-04-24T16:00:00.000000000","2024-04-24T15:00:00.000000000","2024-04-24T14:00:00.000000000","2024-04-24T13:00:00.000000000","2024-04-24T12:00:00.000000000","2024-04-24T11:00:00.000000000","2024-04-24T10:00:00.000000000","2024-04-24T09:00:00.000000000","2024-04-24T08:00:00.000000000","2024-04-24T07:00:00.000000000","2024-04-24T06:00:00.000000000","2024-04-24T05:00:00.000000000","2024-04-24T04:00:00.000000000","2024-04-24T03:00:00.000000000","2024-04-24T02:00:00.000000000","2024-04-24T01:00:00.000000000","2024-04-24T00:00:00.000000000","2024-04-23T23:00:00.000000000","2024-04-23T22:00:00.000000000","2024-04-23T21:00:00.000000000","2024-04-23T20:00:00.000000000","2024-04-23T19:00:00.000000000","2024-04-23T18:00:00.000000000","2024-04-23T17:00:00.000000000","2024-04-23T16:00:00.000000000","2024-04-23T15:00:00.000000000","2024-04-23T14:00:00.000000000","2024-04-23T13:00:00.000000000","2024-04-23T12:00:00.000000000","2024-04-23T11:00:00.000000000","2024-04-23T10:00:00.000000000","2024-04-23T09:00:00.000000000","2024-04-23T08:00:00.000000000","2024-04-23T07:00:00.000000000","2024-04-23T06:00:00.000000000","2024-04-23T05:00:00.000000000","2024-04-23T04:00:00.000000000","2024-04-23T03:00:00.000000000","2024-04-23T02:00:00.000000000","2024-04-23T01:00:00.000000000","2024-04-23T00:00:00.000000000"],"y":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,450306.4375,453563.375,449108.65625,433633.0625,413195.53125,393539.03125,377976.78125,367217.03125,360756.5,360875.15625,368393.8125,388711.75,409957.53125,422268.59375,429447.3125,434967.125,439691.875,444281.1875,449384.03125,453901.6875,457765.28125,463403.1875,469547.875,471347.15625,475035.9375,474971.40625,468621.9375,451528.34375,430847.0,410679.5625,393748.3125,381967.375,375056.40625,374127.1875,380720.0625,400092.75,420907.0,434358.21875,442487.9375,448514.875,453814.71875,458352.21875,463159.90625,467651.5625,471974.15625,476918.09375,481545.6875,483342.65625,487443.15625,487522.9375,481428.625,464753.71875,443707.4375,424247.125,406913.78125,394783.375,388014.125,387126.84375,394170.40625,413671.65625,435897.78125,449491.625,456973.15625,462399.96875,467932.71875,472206.5625,476307.34375,480312.0,484166.21875,489170.6875,493839.875,495298.25,395081.6875,394331.125,390374.875,386088.5,382957.65625,379681.8125,376315.375,372781.53125,367994.59375,363319.53125,356595.875,343766.0625,322310.40625,303586.15625,297326.3125,299004.21875,306571.21875,319506.625,337652.46875,357932.9375,379807.3125,397318.46875,404257.40625,405030.9375,401792.6875,400867.1875,397120.53125,393067.40625,389645.78125,386065.59375,382180.34375,378576.5625,374222.125,369152.84375,361993.4375,349525.6875,329708.6875,311347.5625,305781.25,307752.65625,315722.21875,328578.90625,346604.0,367884.25,389698.4375,407946.0625,415471.90625,416736.5625,414273.25,413726.40625,408863.0,404537.34375,402019.21875,398882.6875,395199.375,392070.84375,388851.46875,384885.4375,379313.9375,368670.4375,349162.9375,330669.5,325085.375,327045.46875,335776.71875,349062.40625,367484.65625,390396.5625,414574.1875,434246.875,443145.625,444114.84375,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],"type":"scatter","xaxis":"x","yaxis":"y"}],                        {"template":{"data":{"barpolar":[{"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"#C8D4E3","linecolor":"#C8D4E3","minorgridcolor":"#C8D4E3","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"#C8D4E3","linecolor":"#C8D4E3","minorgridcolor":"#C8D4E3","startlinecolor":"#2a3f5f"},"type":"carpet"}],"choropleth":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"choropleth"}],"contourcarpet":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"contourcarpet"}],"contour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"contour"}],"heatmapgl":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmapgl"}],"heatmap":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmap"}],"histogram2dcontour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2dcontour"}],"histogram2d":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2d"}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"mesh3d":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"mesh3d"}],"parcoords":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"parcoords"}],"pie":[{"automargin":true,"type":"pie"}],"scatter3d":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatter3d"}],"scattercarpet":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattercarpet"}],"scattergeo":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergeo"}],"scattergl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergl"}],"scattermapbox":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermapbox"}],"scatterpolargl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolargl"}],"scatterpolar":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolar"}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"scatterternary":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterternary"}],"surface":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"surface"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}]},"layout":{"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"autotypenumbers":"strict","coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]],"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]},"colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"geo":{"bgcolor":"white","lakecolor":"white","landcolor":"white","showlakes":true,"showland":true,"subunitcolor":"#C8D4E3"},"hoverlabel":{"align":"left"},"hovermode":"closest","mapbox":{"style":"light"},"margin":{"b":0,"l":0,"r":0,"t":30},"paper_bgcolor":"white","plot_bgcolor":"white","polar":{"angularaxis":{"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":""},"bgcolor":"white","radialaxis":{"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":""}},"scene":{"xaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"},"yaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"},"zaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"ternary":{"aaxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""},"baxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""},"bgcolor":"white","caxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""}},"title":{"x":0.05},"xaxis":{"automargin":true,"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":"","title":{"standoff":15},"zerolinecolor":"#EBF0F8","zerolinewidth":2},"yaxis":{"automargin":true,"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":"","title":{"standoff":15},"zerolinecolor":"#EBF0F8","zerolinewidth":2}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"showticklabels":true,"visible":true},"yaxis":{"anchor":"x","domain":[0.0,1.0]},"annotations":[{"font":{"size":10},"showarrow":false,"text":"unique_id=1","x":0.5,"xanchor":"center","xref":"paper","y":1.0,"yanchor":"bottom","yref":"paper"},{"font":{"size":10},"showarrow":false,"text":"Time [ds]","x":0.5,"xanchor":"center","xref":"paper","y":0,"yanchor":"top","yref":"paper","yshift":-30},{"font":{"size":10},"showarrow":false,"text":"Target [y]","textangle":-90,"x":0,"xanchor":"right","xref":"paper","xshift":-40,"y":0.5,"yanchor":"middle","yref":"paper"}],"margin":{"l":60,"r":10,"t":20,"b":50},"font":{"size":10},"autosize":true,"height":200},                        {"responsive": true}                    ).then(function(){
+                            
+var gd = document.getElementById('9394340c-c815-41bf-8324-4be43354524e');
+var x = new MutationObserver(function (mutations, observer) {{
+        var display = window.getComputedStyle(gd).display;
+        if (!display || display === 'none') {{
+            console.log([gd, 'removed!']);
+            Plotly.purge(gd);
+            observer.disconnect();
+        }}
+}});
+
+// Listen for the removal of the full notebook cells
+var notebookContainer = gd.closest('#notebook-container');
+if (notebookContainer) {{
+    x.observe(notebookContainer, {childList: true});
+}}
+
+// Listen for the clearing of the current output cell
+var outputEl = gd.closest('.output');
+if (outputEl) {{
+    x.observe(outputEl, {childList: true});
+}}
+
+                        })                };                });            </script>        </div>
+</div>
+</div>
+</section>
+<section id="score-the-models" class="level2">
+<h2 class="anchored" data-anchor-id="score-the-models">Score the Models</h2>
+<div id="ff0a586e" class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> mape(y, yhat):</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    mape <span class="op">=</span> mean(<span class="bu">abs</span>(y <span class="op">-</span> yhat)<span class="op">/</span> y) </span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mape</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> rmse(y, yhat):</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    rmse <span class="op">=</span> (mean((y <span class="op">-</span> yhat) <span class="op">**</span> <span class="dv">2</span> )) <span class="op">**</span> <span class="fl">0.5</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> rmse</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> coverage(y, lower, upper):</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    coverage <span class="op">=</span> <span class="bu">sum</span>((y <span class="op">&lt;=</span> upper) <span class="op">&amp;</span> (y <span class="op">&gt;=</span> lower)) <span class="op">/</span> <span class="bu">len</span>(y)</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> coverage</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="f17a97b9" class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>fc <span class="op">=</span> forecasts_stats.merge(test, how <span class="op">=</span> <span class="st">"left"</span>, on <span class="op">=</span> <span class="st">"ds"</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>fc_performance <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> [<span class="st">"AutoARIMA"</span>, <span class="st">"SeasonalNaive"</span>, <span class="st">"DynamicOptimizedTheta"</span>, <span class="st">"MSTL_ARIMA_trend"</span>]:</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> mape(y <span class="op">=</span> fc.y, yhat <span class="op">=</span> fc[i])</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    r <span class="op">=</span> rmse(y <span class="op">=</span> fc.y, yhat <span class="op">=</span> fc[i])</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    c <span class="op">=</span> coverage(y <span class="op">=</span> fc.y, lower <span class="op">=</span> fc[i <span class="op">+</span> <span class="st">"-lo-95"</span>], upper <span class="op">=</span> fc[i <span class="op">+</span> <span class="st">"-hi-95"</span>])</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    perf <span class="op">=</span> {<span class="st">"model"</span>: i,</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>            <span class="st">"mape"</span>: m,</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>            <span class="st">"rmse"</span>: r,</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>            <span class="st">"coverage"</span>: c}</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> fc_performance <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>        fc_performance <span class="op">=</span> pd.DataFrame([perf])</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>        fc_performance <span class="op">=</span> pd.concat([fc_performance, pd.DataFrame([perf])])</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>fc_performance.sort_values(<span class="st">"rmse"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="24">
+<div>
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">model</th>
+<th data-quarto-table-cell-role="th">mape</th>
+<th data-quarto-table-cell-role="th">rmse</th>
+<th data-quarto-table-cell-role="th">coverage</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>MSTL_ARIMA_trend</td>
+<td>0.029793</td>
+<td>13690.780221</td>
+<td>0.902778</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">0</td>
+<td>SeasonalNaive</td>
+<td>0.025622</td>
+<td>14196.465062</td>
+<td>1.000000</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>DynamicOptimizedTheta</td>
+<td>0.048023</td>
+<td>22472.707037</td>
+<td>0.972222</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">0</td>
+<td>AutoARIMA</td>
+<td>0.080049</td>
+<td>41152.048617</td>
+<td>1.000000</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="test-additional-versions-of-the-mstl-model" class="level2">
+<h2 class="anchored" data-anchor-id="test-additional-versions-of-the-mstl-model">Test additional versions of the MSTL model</h2>
+<div id="96142d22" class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>mstl1 <span class="op">=</span> MSTL(</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    season_length<span class="op">=</span>[<span class="dv">24</span>, <span class="dv">24</span> <span class="op">*</span> <span class="dv">7</span>], </span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    trend_forecaster<span class="op">=</span>AutoARIMA(),</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    alias<span class="op">=</span><span class="st">"MSTL_ARIMA_trend_1"</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>mstl2 <span class="op">=</span> MSTL(</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    season_length<span class="op">=</span>[<span class="dv">24</span>, <span class="dv">24</span> <span class="op">*</span> <span class="dv">7</span>], </span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    trend_forecaster<span class="op">=</span> HoltWinters(),</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    alias<span class="op">=</span><span class="st">"MSTL_HW_trend"</span> </span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>mstl3 <span class="op">=</span> MSTL(</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>    season_length<span class="op">=</span>[<span class="dv">24</span>, <span class="dv">24</span> <span class="op">*</span> <span class="dv">7</span>], </span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>    trend_forecaster<span class="op">=</span> DynamicOptimizedTheta(),</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>    alias<span class="op">=</span><span class="st">"MSTL_DOT_trend"</span> </span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>mstl4 <span class="op">=</span> MSTL(</span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>    season_length<span class="op">=</span>[<span class="dv">24</span>, <span class="dv">24</span> <span class="op">*</span> <span class="dv">7</span>], </span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>    trend_forecaster<span class="op">=</span>  Holt(),</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>    alias<span class="op">=</span><span class="st">"MSTL_Holt_trend"</span> </span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>mstl5 <span class="op">=</span> MSTL(</span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>    season_length<span class="op">=</span>[<span class="dv">24</span>, <span class="dv">24</span> <span class="op">*</span> <span class="dv">7</span>], </span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>    trend_forecaster<span class="op">=</span>  AutoRegressive(lags<span class="op">=</span>[<span class="dv">1</span>,<span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">6</span>,<span class="dv">24</span> ], include_mean<span class="op">=</span><span class="va">True</span>),</span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>    alias<span class="op">=</span><span class="st">"MSTL_AR_trend"</span> </span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>mstl6 <span class="op">=</span> MSTL(</span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>    season_length<span class="op">=</span>[<span class="dv">24</span>, <span class="dv">24</span> <span class="op">*</span> <span class="dv">7</span>, <span class="dv">24</span> <span class="op">*</span> <span class="dv">365</span>], </span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a>    trend_forecaster<span class="op">=</span>AutoARIMA(),</span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a>    alias<span class="op">=</span><span class="st">"MSTL_ARIMA_trend_2"</span></span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a>mstl_models <span class="op">=</span> [</span>
+<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a>   mstl1,</span>
+<span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a>   mstl2,</span>
+<span id="cb13-44"><a href="#cb13-44" aria-hidden="true" tabindex="-1"></a>   mstl3,</span>
+<span id="cb13-45"><a href="#cb13-45" aria-hidden="true" tabindex="-1"></a>   mstl4,</span>
+<span id="cb13-46"><a href="#cb13-46" aria-hidden="true" tabindex="-1"></a>   mstl5,</span>
+<span id="cb13-47"><a href="#cb13-47" aria-hidden="true" tabindex="-1"></a>   mstl6</span>
+<span id="cb13-48"><a href="#cb13-48" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb13-49"><a href="#cb13-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-50"><a href="#cb13-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-51"><a href="#cb13-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-52"><a href="#cb13-52" aria-hidden="true" tabindex="-1"></a>sf_mstl <span class="op">=</span> StatsForecast( </span>
+<span id="cb13-53"><a href="#cb13-53" aria-hidden="true" tabindex="-1"></a>    models<span class="op">=</span>mstl_models,</span>
+<span id="cb13-54"><a href="#cb13-54" aria-hidden="true" tabindex="-1"></a>    freq<span class="op">=</span><span class="st">"h"</span>, </span>
+<span id="cb13-55"><a href="#cb13-55" aria-hidden="true" tabindex="-1"></a>    fallback_model <span class="op">=</span> AutoARIMA(),</span>
+<span id="cb13-56"><a href="#cb13-56" aria-hidden="true" tabindex="-1"></a>    n_jobs<span class="op">=</span> <span class="op">-</span><span class="dv">1</span>,</span>
+<span id="cb13-57"><a href="#cb13-57" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="a3cc6fbe" class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>forecasts_mstl <span class="op">=</span> sf_mstl.forecast(df<span class="op">=</span>train, h<span class="op">=</span><span class="dv">72</span>, level<span class="op">=</span>[<span class="dv">95</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/opt/forecasting-poc/lib/python3.10/site-packages/statsforecast/arima.py:829: UserWarning:
+
+some AR parameters were fixed: setting transform_pars = False
+
+/opt/forecasting-poc/lib/python3.10/site-packages/statsforecast/core.py:492: FutureWarning:
+
+In a future version the predictions will have the id as a column. You can set the `NIXTLA_ID_AS_COL` environment variable to adopt the new behavior and to suppress this warning.
+</code></pre>
+</div>
+</div>
+<div id="045c13b0" class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>forecasts_mstl.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="27">
+<div>
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ds</th>
+<th data-quarto-table-cell-role="th">MSTL_ARIMA_trend_1</th>
+<th data-quarto-table-cell-role="th">MSTL_ARIMA_trend_1-lo-95</th>
+<th data-quarto-table-cell-role="th">MSTL_ARIMA_trend_1-hi-95</th>
+<th data-quarto-table-cell-role="th">MSTL_HW_trend</th>
+<th data-quarto-table-cell-role="th">MSTL_HW_trend-lo-95</th>
+<th data-quarto-table-cell-role="th">MSTL_HW_trend-hi-95</th>
+<th data-quarto-table-cell-role="th">MSTL_DOT_trend</th>
+<th data-quarto-table-cell-role="th">MSTL_DOT_trend-lo-95</th>
+<th data-quarto-table-cell-role="th">MSTL_DOT_trend-hi-95</th>
+<th data-quarto-table-cell-role="th">MSTL_Holt_trend</th>
+<th data-quarto-table-cell-role="th">MSTL_Holt_trend-lo-95</th>
+<th data-quarto-table-cell-role="th">MSTL_Holt_trend-hi-95</th>
+<th data-quarto-table-cell-role="th">MSTL_AR_trend</th>
+<th data-quarto-table-cell-role="th">MSTL_AR_trend-lo-95</th>
+<th data-quarto-table-cell-role="th">MSTL_AR_trend-hi-95</th>
+<th data-quarto-table-cell-role="th">MSTL_ARIMA_trend_2</th>
+<th data-quarto-table-cell-role="th">MSTL_ARIMA_trend_2-lo-95</th>
+<th data-quarto-table-cell-role="th">MSTL_ARIMA_trend_2-hi-95</th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">unique_id</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">1</td>
+<td>2024-04-23 00:00:00</td>
+<td>447210.62500</td>
+<td>444114.84375</td>
+<td>450306.43750</td>
+<td>441782.00000</td>
+<td>433129.18750</td>
+<td>450434.81250</td>
+<td>445456.03125</td>
+<td>442295.59375</td>
+<td>449220.03125</td>
+<td>445482.15625</td>
+<td>441707.37500</td>
+<td>449256.90625</td>
+<td>447665.34375</td>
+<td>444598.78125</td>
+<td>450731.90625</td>
+<td>454678.59375</td>
+<td>452427.40625</td>
+<td>456929.81250</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>2024-04-23 01:00:00</td>
+<td>448354.50000</td>
+<td>443145.62500</td>
+<td>453563.37500</td>
+<td>444155.65625</td>
+<td>421518.93750</td>
+<td>466792.40625</td>
+<td>445100.40625</td>
+<td>439725.15625</td>
+<td>450135.78125</td>
+<td>445124.21875</td>
+<td>439785.90625</td>
+<td>450462.56250</td>
+<td>449133.59375</td>
+<td>443669.03125</td>
+<td>454598.15625</td>
+<td>454491.00000</td>
+<td>450708.18750</td>
+<td>458273.81250</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">1</td>
+<td>2024-04-23 02:00:00</td>
+<td>441677.78125</td>
+<td>434246.87500</td>
+<td>449108.65625</td>
+<td>445304.81250</td>
+<td>404940.46875</td>
+<td>485669.15625</td>
+<td>437529.87500</td>
+<td>430476.68750</td>
+<td>443777.46875</td>
+<td>437551.43750</td>
+<td>431013.15625</td>
+<td>444089.71875</td>
+<td>442690.50000</td>
+<td>434685.46875</td>
+<td>450695.50000</td>
+<td>447848.18750</td>
+<td>442430.37500</td>
+<td>453266.03125</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>2024-04-23 03:00:00</td>
+<td>424103.62500</td>
+<td>414574.18750</td>
+<td>433633.06250</td>
+<td>445594.12500</td>
+<td>385722.96875</td>
+<td>505465.25000</td>
+<td>419549.75000</td>
+<td>412234.25000</td>
+<td>426818.28125</td>
+<td>419569.09375</td>
+<td>412019.03125</td>
+<td>427119.15625</td>
+<td>425196.56250</td>
+<td>414771.75000</td>
+<td>435621.37500</td>
+<td>429126.68750</td>
+<td>422157.71875</td>
+<td>436095.68750</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">1</td>
+<td>2024-04-23 04:00:00</td>
+<td>401796.06250</td>
+<td>390396.56250</td>
+<td>413195.53125</td>
+<td>445355.68750</td>
+<td>365746.09375</td>
+<td>524965.31250</td>
+<td>397128.46875</td>
+<td>388371.68750</td>
+<td>405360.15625</td>
+<td>397145.68750</td>
+<td>388704.09375</td>
+<td>405587.25000</td>
+<td>402821.40625</td>
+<td>390242.53125</td>
+<td>415400.28125</td>
+<td>406840.28125</td>
+<td>398481.12500</td>
+<td>415199.43750</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</div>
+<div id="5cd6292a" class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>fc <span class="op">=</span> forecasts_mstl.merge(test, how <span class="op">=</span> <span class="st">"left"</span>, on <span class="op">=</span> <span class="st">"ds"</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>fc_performance <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> [<span class="st">"MSTL_ARIMA_trend_1"</span>, <span class="st">"MSTL_ARIMA_trend_2"</span>, <span class="st">"MSTL_HW_trend"</span>, <span class="st">"MSTL_DOT_trend"</span>, <span class="st">"MSTL_AR_trend"</span>, <span class="st">"MSTL_Holt_trend"</span>]:</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> mape(y <span class="op">=</span> fc.y, yhat <span class="op">=</span> fc[i])</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    r <span class="op">=</span> rmse(y <span class="op">=</span> fc.y, yhat <span class="op">=</span> fc[i])</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    c <span class="op">=</span> coverage(y <span class="op">=</span> fc.y, lower <span class="op">=</span> fc[i <span class="op">+</span> <span class="st">"-lo-95"</span>], upper <span class="op">=</span> fc[i <span class="op">+</span> <span class="st">"-hi-95"</span>])</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>    perf <span class="op">=</span> {<span class="st">"model"</span>: i,</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>            <span class="st">"mape"</span>: m,</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>            <span class="st">"rmse"</span>: r,</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>            <span class="st">"coverage"</span>: c}</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> fc_performance <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>        fc_performance <span class="op">=</span> pd.DataFrame([perf])</span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>        fc_performance <span class="op">=</span> pd.concat([fc_performance, pd.DataFrame([perf])])</span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>fc_performance.sort_values(<span class="st">"rmse"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="28">
+<div>
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">model</th>
+<th data-quarto-table-cell-role="th">mape</th>
+<th data-quarto-table-cell-role="th">rmse</th>
+<th data-quarto-table-cell-role="th">coverage</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>MSTL_AR_trend</td>
+<td>0.022841</td>
+<td>11133.594451</td>
+<td>0.916667</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">0</td>
+<td>MSTL_ARIMA_trend_2</td>
+<td>0.029137</td>
+<td>13636.440450</td>
+<td>0.875000</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>MSTL_ARIMA_trend_1</td>
+<td>0.029793</td>
+<td>13690.780221</td>
+<td>0.902778</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">0</td>
+<td>MSTL_DOT_trend</td>
+<td>0.038641</td>
+<td>17377.932553</td>
+<td>0.763889</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>MSTL_Holt_trend</td>
+<td>0.038708</td>
+<td>17405.987291</td>
+<td>0.833333</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">0</td>
+<td>MSTL_HW_trend</td>
+<td>0.080049</td>
+<td>41152.048617</td>
+<td>1.000000</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

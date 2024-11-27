@@ -1,0 +1,256 @@
+---
+title: "US48 Demand for Electricity Forecast"
+format:
+  html:
+    code-fold: false
+jupyter: python3
+---
+
+
+## Load Libraries
+
+```{python}
+import os
+import pandas as pd
+from statsforecast import StatsForecast
+import datetime
+import statsmodels.api as sm
+import matplotlib.pyplot as plt
+from utilsforecast.plotting import plot_series
+from statistics import mean
+
+
+from statsforecast.models import (
+    HoltWinters,
+    CrostonClassic as Croston, 
+    HistoricAverage,
+    DynamicOptimizedTheta,
+    SeasonalNaive,
+    AutoARIMA,
+    AutoRegressive,
+    AutoETS,
+    AutoTBATS,
+    MSTL,
+    Holt
+)
+
+
+
+import plotly.graph_objects as go
+```
+
+## Load the Data
+
+Reformat the data
+
+```{python}
+ts = pd.read_csv("data/data.csv")
+ts["ds"] = pd.to_datetime(ts["ds"])
+ts = ts.sort_values("ds")
+ts.head()
+```
+
+Subset for the last 25 months:
+```{python}
+end = ts["ds"].max()
+start = end - datetime.timedelta(hours = 24 * 31 * 25)
+ts = ts[ts["ds"] >= start]
+```
+
+Set the last 72 hours as testing partition and use the rest for training
+```{python}
+test_length = 72
+
+train_end = end  - datetime.timedelta(hours = test_length)
+
+
+train = ts[ts["ds"] <= train_end]
+test = ts[ts["ds"] > train_end]
+
+plot_series(train, engine = "plotly")
+plot_series(test, engine = "plotly")
+```
+
+## Set the Models
+
+Set the models:
+
+```{python}
+auto_arima = AutoARIMA()
+s_naive = SeasonalNaive(season_length=24)
+theta =  DynamicOptimizedTheta(season_length= 24)
+mstl = MSTL(
+    season_length=[24, 24 * 7], 
+    trend_forecaster=AutoARIMA(),
+    alias="MSTL_ARIMA_trend"
+)
+
+stats_models = [
+   auto_arima,
+   s_naive,
+   theta,
+   mstl
+]
+
+
+
+sf = StatsForecast( 
+    models=stats_models,
+    freq="h", 
+    fallback_model = AutoARIMA(),
+    n_jobs= -1,
+)
+
+```
+
+
+
+```{python}
+forecasts_stats = sf.forecast(df=train, h=72, level=[95])
+
+```
+
+```{python}
+forecasts_stats.head()
+```
+
+```{python}
+sf.plot(test, forecasts_stats, models = ["AutoARIMA"], level=[95])
+sf.plot(test, forecasts_stats, engine = "plotly", level=[95])
+```
+
+## Score the Models
+
+```{python}
+def mape(y, yhat):
+    mape = mean(abs(y - yhat)/ y) 
+    return mape
+
+def rmse(y, yhat):
+    rmse = (mean((y - yhat) ** 2 )) ** 0.5
+    return rmse
+
+def coverage(y, lower, upper):
+    coverage = sum((y <= upper) & (y >= lower)) / len(y)
+    return coverage
+```
+
+
+```{python}
+fc = forecasts_stats.merge(test, how = "left", on = "ds")
+fc_performance = None
+
+for i in ["AutoARIMA", "SeasonalNaive", "DynamicOptimizedTheta", "MSTL_ARIMA_trend"]:
+    m = mape(y = fc.y, yhat = fc[i])
+    r = rmse(y = fc.y, yhat = fc[i])
+    c = coverage(y = fc.y, lower = fc[i + "-lo-95"], upper = fc[i + "-hi-95"])
+
+    perf = {"model": i,
+            "mape": m,
+            "rmse": r,
+            "coverage": c}
+    if fc_performance is None:
+        fc_performance = pd.DataFrame([perf])
+    else:
+        fc_performance = pd.concat([fc_performance, pd.DataFrame([perf])])
+
+fc_performance.sort_values("rmse")
+```
+
+
+## Test additional versions of the MSTL model
+
+```{python}
+mstl1 = MSTL(
+    season_length=[24, 24 * 7], 
+    trend_forecaster=AutoARIMA(),
+    alias="MSTL_ARIMA_trend_1"
+)
+
+mstl2 = MSTL(
+    season_length=[24, 24 * 7], 
+    trend_forecaster= HoltWinters(),
+    alias="MSTL_HW_trend" 
+)
+
+
+mstl3 = MSTL(
+    season_length=[24, 24 * 7], 
+    trend_forecaster= DynamicOptimizedTheta(),
+    alias="MSTL_DOT_trend" 
+)
+
+
+mstl4 = MSTL(
+    season_length=[24, 24 * 7], 
+    trend_forecaster=  Holt(),
+    alias="MSTL_Holt_trend" 
+)
+
+
+mstl5 = MSTL(
+    season_length=[24, 24 * 7], 
+    trend_forecaster=  AutoRegressive(lags=[1,2, 3, 4,5,6,24 ], include_mean=True),
+    alias="MSTL_AR_trend" 
+)
+
+mstl6 = MSTL(
+    season_length=[24, 24 * 7, 24 * 365], 
+    trend_forecaster=AutoARIMA(),
+    alias="MSTL_ARIMA_trend_2"
+)
+
+
+mstl_models = [
+   mstl1,
+   mstl2,
+   mstl3,
+   mstl4,
+   mstl5,
+   mstl6
+]
+
+
+
+sf_mstl = StatsForecast( 
+    models=mstl_models,
+    freq="h", 
+    fallback_model = AutoARIMA(),
+    n_jobs= -1,
+)
+
+```
+
+
+
+```{python}
+forecasts_mstl = sf_mstl.forecast(df=train, h=72, level=[95])
+
+```
+
+```{python}
+forecasts_mstl.head()
+```
+
+
+```{python}
+fc = forecasts_mstl.merge(test, how = "left", on = "ds")
+fc_performance = None
+
+for i in ["MSTL_ARIMA_trend_1", "MSTL_ARIMA_trend_2", "MSTL_HW_trend", "MSTL_DOT_trend", "MSTL_AR_trend", "MSTL_Holt_trend"]:
+    m = mape(y = fc.y, yhat = fc[i])
+    r = rmse(y = fc.y, yhat = fc[i])
+    c = coverage(y = fc.y, lower = fc[i + "-lo-95"], upper = fc[i + "-hi-95"])
+
+    perf = {"model": i,
+            "mape": m,
+            "rmse": r,
+            "coverage": c}
+    if fc_performance is None:
+        fc_performance = pd.DataFrame([perf])
+    else:
+        fc_performance = pd.concat([fc_performance, pd.DataFrame([perf])])
+
+fc_performance.sort_values("rmse")
+```
+
