@@ -2,7 +2,7 @@
 title: "EIA API - US48 Demand for Electricity Backfill"
 format:
   html:
-    code-fold: true
+    code-fold: false
 jupyter: python3
 ---
 
@@ -24,6 +24,7 @@ We will pull the data from the EIA API using a set of functions on the `eia_api.
 
 
 ```{python}
+#| label: eia modules
 import eia_api
 import eia_etl as etl
 ```
@@ -44,6 +45,7 @@ In addition, we will use the following libraries:
 
 
 ```{python}
+#| label: Loading libraries
 import requests
 import json
 import os
@@ -58,6 +60,7 @@ import plotly.graph_objects as go
 ## Setting Parameters
 Let's start by loading the pipeline metadata:
 ```{python}
+#| label: Loading metadata
 raw_json = open("./settings/settings.json")
 meta_json = json.load(raw_json)
 api_path = meta_json["api"]["api_path"]
@@ -77,18 +80,21 @@ log_path = meta_json["data"]["log_path"]
 We will use the `getenv` function from the `os` library to pull the EIA API key, which is stored as an environment variable named `EIA_API_KEY`:
 
 ```{python}
+#| label: Loading API key
 eia_api_key = os.getenv('EIA_API_KEY')
 ```
 
 We will use the `eia_metadata` function to pull the series metadata. Note that to pull metadata from the API, we will use as the `api_path` the series routh path and drop the `/data` extension (which is used to pull data):
 
 ```{python}
+#| label: Pulling metadata
 metadata = eia_api.eia_metadata(api_key = eia_api_key, api_path = api_path)
 ```
 
 Depending on the API path, the API returns some useful information about the series available on the path:
 
 ```{python}
+#| label: Metadata keys
 metadata.meta.keys()
 ```
 
@@ -98,7 +104,8 @@ metadata.meta.keys()
 By default, the API has a 5000-row limitation per pull. The eia_backfill function enables the handling of a larger data request by sending a batch request and appending back the data:
 
 ```{python}
-df = eia_api.eia_backfile(api_key = eia_api_key, 
+#| label: Pulling the data 
+df = eia_api.eia_backfill(api_key = eia_api_key, 
         api_path = api_path, 
         facets = facets, 
         start = start,
@@ -109,11 +116,13 @@ df = eia_api.eia_backfile(api_key = eia_api_key,
 
 The DataFrame head:
 ```{python}
+#| label: Review the data 1
 df.data.head(10)
 ```
 
 And, the DataFrame tail:
 ```{python}
+#| label: Review the data 2
 df.data.tail(10)
 ```
 
@@ -130,21 +139,24 @@ We will runn the following data quality checks:
 ### Check the Series Timestamp
 
 ```{python}
+#| label: Checking the data
 ts_obj = pd.DataFrame(np.arange(start = start, stop = end + datetime.timedelta(hours = 1), step = datetime.timedelta(hours = 1)).astype(datetime.datetime), columns=["index"])
+print(len(ts_obj))
 ts_obj  = ts_obj.merge(df.data, left_on = "index", right_on = "period", how="left")
+print(len(ts_obj))
 ```
 
 ### Data validation
 
 ```{python}
-
+#| label: Check data attributes
 print(ts_obj["type"].unique())
 print(ts_obj["value"].isna().sum())
 ```
 
 ### Impute Missing Values
 ```{python}
-
+#| label: Impute missing values
 ts_obj["impute"] = np.NaN
 
 ts_obj = ts_obj.sort_values(by = ["index"])
@@ -175,6 +187,7 @@ ts_obj.loc[non_missing_index, "y"] = ts_obj.loc[non_missing_index, "value"]
 We will use Plotly to visualize the series:
 
 ```{python}
+#| label: Plot the data
 p = go.Figure()
 p.add_trace(go.Scatter(x = ts_obj["index"], y = ts_obj["y"],
                        mode='lines',
@@ -190,12 +203,14 @@ p.show()
 ### Reformat the Data
 
 ```{python}
-df = ts_obj[["index", "respondent", "type", "value", "value-units", "impute", "y"]]
+#| label: Subset the data
+df = ts_obj[["index", "respondent", "type", "value", "value-units", "y"]]
 ```
 
 ### Create Log and Check for Missing values
 
 ```{python}
+#| label: Set log
 log = {
     "index": 1,
     "respondent": "US48",
@@ -209,6 +224,7 @@ log = {
     "end_match": ts_obj["period"].max() == end, 
     "n_obs": len(ts_obj),
     "na": ts_obj["value"].isna().sum(),
+    "imputed": ts_obj["impute"].count(),
     "na_status": "imputed",
     "type": "backfill",
     "update": False,
@@ -216,6 +232,12 @@ log = {
     "comments": "Initial data backfill"
 
 }
+
+if ts_obj["value"].isna().sum() == ts_obj["impute"].count():
+    log["update"] = True
+
+if log["end"] == log["end_act"] and log["start"] == log["start_act"] and (log["na"] == 0 or  log["update"]):
+    log["success"] = True
 
 log_file = pd.DataFrame([log])
 
@@ -225,12 +247,10 @@ log_file
 
 Last but not least, we will check if the start and end of the series match the GET request settings and save the data and log:
 ```{python}
-if (log_file.iloc[0]["end"] == log_file.iloc[0]["end_act"] and 
-    log_file.iloc[0]["start"] == log_file.iloc[0]["start_act"] and
-    log_file.iloc[0]["na"] == 0):
-    log_file.loc[0, "success"] = True
+#| label: Save the log
+if log_file.loc[0, "success"]:
     print("Save the data into CSV file")
-    df.data.to_csv(data_path, index = False)
+    df.to_csv(data_path, index = False)
     log_file.loc[0, "update"] = True
     print("Save the metadata into CSV file")
     log_file.to_csv(log_path, index = False)

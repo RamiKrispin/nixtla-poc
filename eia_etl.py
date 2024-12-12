@@ -49,7 +49,7 @@ def get_api_end(api_key, api_path, offset):
     return meta
     
 
-def eia_data_refresh(start, end, api_key, api_path, facets, offset = None):
+def eia_data_refresh(start, end, api_key, api_path, facets):
     
     class data_refresh:
         def __init__(output, data, status, log):
@@ -58,42 +58,29 @@ def eia_data_refresh(start, end, api_key, api_path, facets, offset = None):
             output.log = log
     
     df = None
-    comments = ""
 
 
     if(start < end):
         print("Updates are available")
-        if offset is not None:
-            s = start -  datetime.timedelta(hours = offset)
-            o = offset
-            comments = comments + "Offset the start argument by" + str(offset) + "; "
-        else:
-            s = start
-            o = 0
         
         df = eia_api.eia_get(api_key = api_key, 
                              api_path = api_path, 
                              facets = facets, 
-                             start = s,
+                             start = start,
                              end = end) 
         if df is not None and len(df.data) > 0:
-            start_match_flag = df.data["period"].min() == s
+            start_match_flag = df.data["period"].min() == start
             end_match_flag = df.data["period"].max() == end
             start_act = df.data["period"].min()
             end_act = df.data["period"].max()
-            end_flag = start_act < end_act
             n_obs = len(df.data)
             na = df.data["value"].isna().sum()
-            if start_match_flag and end_flag and na == 0 and n_obs > 0:
+            if start_match_flag and end_match_flag and na == 0 and n_obs > 0:
                 print("Refresh successed")
                 success_flag = True
-                if end_match_flag:
-                    comments = comments + "The end argument does not match the last data point timestamp; "
             else:
                 success_flag = False
                 print("Refresh failed")
-                comments = comments + "The refresh process failed, please check the log's flags; "
-
         else:
             print("Refresh failed")
             success_flag = False
@@ -103,7 +90,6 @@ def eia_data_refresh(start, end, api_key, api_path, facets, offset = None):
             end_act = None
             n_obs = None
             na = None
-            comments = comments + "The refresh process failed, something went wrong with the data request; "
     else:
         print("No updates are available...")
         success_flag = False
@@ -113,7 +99,6 @@ def eia_data_refresh(start, end, api_key, api_path, facets, offset = None):
         end_act = None
         n_obs = None
         na = None
-        comments = comments + "No new data is available; "
     
     log = {
         "index": None,
@@ -122,7 +107,6 @@ def eia_data_refresh(start, end, api_key, api_path, facets, offset = None):
         "time": datetime.datetime.now(),
         "start": start,
         "end": end,
-        "offset": offset,
         "start_act": start_act,
         "end_act": end_act,
         "start_match": start_match_flag, 
@@ -131,8 +115,7 @@ def eia_data_refresh(start, end, api_key, api_path, facets, offset = None):
         "na": na,
         "type": "refresh",
         "update": None,
-        "success": success_flag,
-        "comments": comments
+        "success": success_flag
         }
     
     if success_flag:
@@ -167,9 +150,6 @@ def append_new_data(data_path,log_path, new_data, save = False):
         pre_data = pd.read_csv(data_path)
         pre_data["period"] = pd.to_datetime(pre_data["period"])
         pre_data["value"] = pd.to_numeric(pre_data["value"])
-        if new_data.log["offset"] > 0 and pre_data["period"].max() > new_data.log["start_act"]:
-            pre_data = pre_data[pre_data["period"] < new_data.log["start_act"]]
-            
         data = pre_data._append(new_data.data)
         data = data.sort_values("period")
 

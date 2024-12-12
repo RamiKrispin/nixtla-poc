@@ -110,6 +110,12 @@ def eia_get(api_key,
         df["period"] = pd.to_datetime(df["period"])
         df["value"] = pd.to_numeric(df["value"])
         df = df.sort_values(by = ["period"])
+    # If start and end arguments are hourly
+        if df["period"].min() < start:
+            df = df[df["period"] >= start]
+        if df["period"].max() > end:
+            df = df[df["period"] <= end]
+
         status = True
     else:
         status = False
@@ -123,7 +129,8 @@ def eia_get(api_key,
         "end": end, 
         "length": length, 
         "offset": offset, 
-        "frequency": frequency
+        "frequency": frequency,
+        "status": status
     }
     output = response(data = df, url = url + "&api_key=", parameters = parameters)
     return output
@@ -133,7 +140,7 @@ def eia_get(api_key,
 
 
 
-def eia_backfile(start, end, offset, api_key, api_path, facets):
+def eia_backfill(start, end, offset, api_key, api_path, facets):
     
     class response:
         def __init__(output, data, parameters):
@@ -174,9 +181,9 @@ def eia_backfile(start, end, offset, api_key, api_path, facets):
 
     
     for i in range(len(time_vec_seq[:-1])):
-        start = time_vec_seq[i]
+        start = time_vec_seq[i] - datetime.timedelta(hours = 24)
         if i < len(time_vec_seq[:-1]) - 1:
-            end = time_vec_seq[i + 1] -  datetime.timedelta(hours = 1)
+            end = time_vec_seq[i + 1] +  datetime.timedelta(hours = 24)
         elif i == len(time_vec_seq[:-1]) - 1:
             end = time_vec_seq[i + 1]
         temp = eia_get(api_key = api_key, 
@@ -185,6 +192,7 @@ def eia_backfile(start, end, offset, api_key, api_path, facets):
                        start = start,
                        data = "value", 
                        end = end)
+        temp.data = temp.data[(temp.data["period"] <= time_vec_seq[i + 1]) & (temp.data["period"] > time_vec_seq[i])]
         if i == 0:
             df = temp.data
         else:
