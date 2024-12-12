@@ -1,0 +1,309 @@
+---
+title: "Training Models with Backtesting"
+format:
+  html:
+    code-fold: false
+jupyter: python3
+---
+
+## Load Libraries
+
+```{python}
+#| label: Loading libraries
+import os
+import pandas as pd
+from statsforecast import StatsForecast
+from statsforecast.utils import ConformalIntervals
+import datetime
+from utilsforecast.plotting import plot_series
+from statistics import mean
+
+
+from statsforecast.models import (
+    HoltWinters,
+    CrostonClassic as Croston, 
+    HistoricAverage,
+    DynamicOptimizedTheta,
+    SeasonalNaive,
+    AutoARIMA,
+    AutoRegressive,
+    AutoETS,
+    AutoTBATS,
+    MSTL,
+    Holt
+)
+
+
+
+import plotly.express as px
+```
+
+## Load the Data
+
+Reformat the data
+
+```{python}
+#| label: Loading data
+ts = pd.read_csv("data/data.csv")
+ts["ds"] = pd.to_datetime(ts["ds"])
+ts = ts.sort_values("ds")
+ts = ts[["unique_id", "ds", "y"]]
+
+os.environ['NIXTLA_ID_AS_COL'] = '1'
+
+ts.head()
+```
+
+Subset for the last 25 months:
+```{python}
+#| label: Subset the data
+end = ts["ds"].max()
+start = end - datetime.timedelta(hours = 24 * 31 * 25)
+ts = ts[ts["ds"] >= start]
+```
+
+
+## Set the Backtesting
+
+Define the forecasting models:
+
+```{python}
+#| label: 
+
+# Instantiate models with hourly seasonality
+stats_models = {
+"AutoARIMA": AutoARIMA(),
+"Seasonal_Naive": SeasonalNaive(season_length=24),
+"DynamicOptimizedTheta":  DynamicOptimizedTheta(season_length= 24),
+"MSTL_ARIMA_trend": MSTL(season_length=[24, 24 * 7], trend_forecaster=AutoARIMA()),
+"MSTL_Holt_trend": MSTL(season_length=[24, 24 * 7], trend_forecaster=Holt())
+}
+
+```
+
+```{python}
+auto_arima = AutoARIMA()
+
+s_naive = SeasonalNaive(season_length=24)
+
+theta =  DynamicOptimizedTheta(season_length= 24)
+
+mstl1 = MSTL(season_length=[24, 24 * 7], 
+             trend_forecaster=AutoARIMA(),
+		     alias="MSTL_ARIMA_trend")
+
+mstl2 = MSTL(season_length=[24, 24 * 7], 
+		     trend_forecaster=Holt(),
+		     alias="MSTL_Holt_trend")
+
+
+stats_models = [auto_arima, s_naive, theta, mstl1, mstl2]
+```
+
+```{python}
+#| label: Set the model obj
+
+sf = StatsForecast(
+    models = stats_models, 
+    freq = 'h', 
+    n_jobs = -1
+)
+```
+
+
+```{python}
+#| label: Backtesting settings
+h = 72
+step_size = 24
+partitons = 1
+n_windows=5
+method = "conformal_distribution"
+intervals = ConformalIntervals(h=72, n_windows=5 , method = "conformal_distribution")
+levels = [95]
+```
+
+
+```{python}
+#| label: Run backtesting
+bkt_df = sf.cross_validation(
+    df = ts,
+    h = h,
+    step_size = step_size,
+    n_windows =  partitons,
+    prediction_intervals = intervals,
+    level = levels
+  )
+```
+
+
+```{python}
+#| label: Review the bkt 
+bkt_df.head()
+```
+
+
+```{python}
+#| label: Reformat the bkt obj
+model_label = [str(s) for s in stats_models]  
+model_name = [type(s).__name__ for s in stats_models]  
+lower = [s + "-lo-95" for s in model_label]
+upper= [s + "-hi-95" for s in model_label]
+models_mapping = pd.DataFrame({"model_label": model_label, "model_name": model_name})
+
+
+d1 = pd.melt(bkt_df, id_vars= ["unique_id", "ds", "cutoff"], 
+value_vars= model_label, var_name = "model_label" , value_name = "forecast")
+d2 = pd.melt(bkt_df, id_vars= ["unique_id", "ds", "cutoff"], 
+value_vars= lower, var_name = "model_label" , value_name = "lower")
+d2["model_label"] = d2["model_label"].str.replace("-lo-95", "")
+d3 = pd.melt(bkt_df, id_vars= ["unique_id", "ds", "cutoff"], 
+value_vars= upper, var_name = "model_label", value_name = "upper")
+d3["model_label"] = d3["model_label"].str.replace("-hi-95", "")
+
+bkt_long = (
+    d1
+.merge(right = d2, how = "left", on = ["unique_id", "ds", "cutoff", "model_label"])
+.merge(right = d3, how = "left", on = ["unique_id", "ds", "cutoff", "model_label"])
+.merge(right =  models_mapping, how = "left", on = ["model_label"])
+.merge(right =  ts, how = "left", on = ["unique_id", "ds"])
+)
+bkt_long.head()
+```
+
+
+
+```{python}
+#| label: Score the models
+def mape(y, yhat):
+    mape = mean(abs(y - yhat)/ y) 
+    return mape
+
+def rmse(y, yhat):
+    rmse = (mean((y - yhat) ** 2 )) ** 0.5
+    return rmse
+
+def coverage(y, lower, upper):
+    coverage = sum((y <= upper) & (y >= lower)) / len(y)
+    return coverage
+
+
+def score(df):
+    mape_score = mape(y = df["y"], yhat = df["forecast"])
+    rmse_score = rmse(y = df["y"], yhat = df["forecast"])
+    coverage_score = coverage(y = df["y"], lower = df["lower"], upper = df["upper"])
+    cols = ["mape","rmse", "coverage"]
+    d = pd.Series([mape_score, rmse_score,  coverage_score], index=cols)
+
+    return d
+
+score_df = bkt_long.groupby(["unique_id", "model_label", "model_name", "cutoff"]).apply(score).reset_index()
+
+score_df.head()
+```
+
+
+
+```{python}
+#| label: Calculate the leaderboard
+leaderboard = score_df.groupby(["unique_id", "model_label", "model_name"]).agg({"mape": "mean", "rmse": "mean", "coverage": "mean"}).reset_index()
+
+leaderboard.sort_values(by = ["mape"])
+```
+
+
+
+
+```{python}
+#| label: Plot the error rate
+fig = px.box(score_df, x="model_label", y="rmse", color="model_label")
+fig.update_traces(boxpoints = 'all', jitter = 0.3, pointpos = -1.8, showlegend = False)
+
+fig.update_layout(
+    title="Error Distribution",
+    xaxis_title="Model",
+    yaxis_title="RMSE",
+    font=dict(family="Arial", size=14, color="black")
+)
+
+fig.show()
+```
+
+
+## Logging the Results with MLflow
+
+```{python}
+#| label: Add partitions
+cutoff = bkt_long["cutoff"].unique()
+partitions_mapping = pd.DataFrame({"cutoff": cutoff, "partition": range(1, len(cutoff) + 1)})
+
+partitions_mapping
+
+score_df = score_df.merge(partitions_mapping, how = "left", on = ["cutoff"])
+score_df
+```
+
+
+```{python}
+#| label: Setting MLflow exp
+import mlflow
+
+experiment_name = "stats_forecast"
+
+mlflow_path = "file:///mlruns"
+
+tags = {"h": h,
+"step_size": step_size,
+"partitions": partitions,
+"intervals_type": "ConformalIntervals",
+"intervals_h": h,
+"intervals_n_windows": n_windows,
+"intervals_method": "conformal_distribution",
+"levels": levels }
+
+
+
+try:
+    mlflow.create_experiment(name = experiment_name,
+                            artifact_location= mlflow_path,
+                            tags = tags)
+    meta = mlflow.get_experiment_by_name(experiment_name)
+    print(f"Set a new experiment {experiment_name}")
+    print("Pulling the metadata")
+except:
+    print(f"Experiment {experiment_name} exists, pulling the metadata")
+    meta = mlflow.get_experiment_by_name(experiment_name)
+```
+
+```{python}
+#| label: Log the results
+run_time = datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S")
+for index, row in score_df.iterrows():
+    run_name = row["model_label"] + "-" + run_time 
+    with mlflow.start_run(experiment_id = meta.experiment_id, 
+                run_name = run_name,
+                tags = {"type": "backtesting",
+                "partition": row["partition"], 
+                "unique_id": row["unique_id"],
+                "model_label": row["model_label"],
+                "model_name": row["model_name"],
+                "run_name": run_name}) as run:
+        model_params = {
+            "model_name": row["model_name"],
+            "model_label": row["model_label"],
+            "partition": row["partition"]
+        }
+        mlflow.log_params(model_params)
+        mlflow.log_metric("mape", row["mape"])
+        mlflow.log_metric("rmse", row["rmse"])
+        mlflow.log_metric("coverage", row["coverage"])
+```
+
+
+
+
+
+
+
+
+
+
