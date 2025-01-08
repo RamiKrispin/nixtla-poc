@@ -48,7 +48,9 @@ from utilsforecast.plotting import plot_series
 plot_series(ts, engine = "plotly").update_layout(height=300)
 ```
 ## Set the Backtesting Process
+
 Let's start by defining the models:
+
 - Regression based on k-nearest neighbors (see model [documentation](https://scikit-learn.org/1.5/modules/generated/sklearn.neighbors.KNeighborsRegressor.html))
 - Multi-layer Perceptron regressor (see model [documentation](https://scikit-learn.org/1.5/modules/generated/sklearn.neural_network.MLPRegressor.html))
 - ElasticNet - Linear regression with combined L1 and L2 priors as regularizer (see model [documentation](https://scikit-learn.org/1.5/modules/generated/sklearn.linear_model.ElasticNet.html))
