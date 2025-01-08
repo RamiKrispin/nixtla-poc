@@ -63,6 +63,7 @@ We will load the US hourly demand for electricity from a flat file using the pan
 
 ```{python}
 data = pd.read_csv("data/us48.csv")
+data = data.rename(columns={"index": "period"})
 ```
 
 Let's use the `head` and `dtypes` methods to review the object attributes:
@@ -110,10 +111,10 @@ Let's reformat the DataFrame object by reducing unused dimensions and keeping th
 ts = data[["period", "value"]]
 ts = ts.sort_values("period")
 ts = ts.rename(columns = {"period": "ds", "value": "y"})
-ts["unique_id"] = 1
+ts["unique_id"] = "1"
 
 ts.head()
-
+ts.tail()
 ```
 
 
@@ -140,7 +141,7 @@ As we want to use later two full yearly cycles to train the models, we will subs
 ```{python}
 end = ts["ds"].max().floor(freq = "d") - datetime.timedelta(hours = 1)
 
-
+end = datetime.datetime(2024, 12, 1, 0, 0) - datetime.timedelta(hours = 1)
 print(end)
 ```
 
@@ -165,9 +166,19 @@ Reploting the subset series:
 StatsForecast.plot(df, engine = "plotly").update_layout(height=300)
 ```
 
+```{python}
+df2 = df.copy()
+
+df2 = df2[["ds", "y"]]
+df2 = df2.rename(columns = {"ds": "period"})
+df2.head()
+```
+
+
 ## Saving the Data Back to CSV
 last but not least, let's save the series:
 ```{python}
 df.to_csv("data/data.csv", index = False)
+df2.to_csv("data/data2.csv", index = False)
 ts.to_csv("data/ts_data.csv", index = False)
 ```
