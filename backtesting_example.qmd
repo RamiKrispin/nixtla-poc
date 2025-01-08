@@ -1,0 +1,144 @@
+---
+title: "Backtesting with ML models"
+format:
+    html:
+        code-fold: false
+jupyter: python3
+---
+
+Let's train regression models with different regression models.
+
+## Loading the data
+
+Utilies and data libraries
+```{python}
+import pandas as pd
+import datetime
+import json
+```
+
+Load metadata
+```{python}
+#| label: Load the metadata
+raw_json = open("./settings/settings.json")
+meta_json = json.load(raw_json)
+backtesting_path = meta_json["data"]["backtesting_path"]
+```
+
+### Load the dataset and reformat it
+```{python}
+# | label: Load the data
+
+ts = pd.read_csv("data/data.csv")
+ts["ds"] = pd.to_datetime(ts["ds"])
+ts = ts.sort_values("ds")
+ts = ts[["unique_id", "ds", "y"]]
+ts.head()
+```
+
+Set the data
+```{python}
+# | label: Subset the data
+# os.environ["NIXTLA_ID_AS_COL"] = "1"
+```
+
+
+```{python}
+from utilsforecast.plotting import plot_series
+plot_series(ts, engine = "plotly").update_layout(height=300)
+```
+## Set the Backtesting Process
+Let's start by defining the models:
+- Regression based on k-nearest neighbors (see model [documentation](https://scikit-learn.org/1.5/modules/generated/sklearn.neighbors.KNeighborsRegressor.html))
+- Multi-layer Perceptron regressor (see model [documentation](https://scikit-learn.org/1.5/modules/generated/sklearn.neural_network.MLPRegressor.html))
+- ElasticNet - Linear regression with combined L1 and L2 priors as regularizer (see model [documentation](https://scikit-learn.org/1.5/modules/generated/sklearn.linear_model.ElasticNet.html))
+
+
+```{python}
+from sklearn.linear_model import  ElasticNet
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.neural_network import MLPRegressor
+
+ml_models = {
+    "knn": KNeighborsRegressor(),
+    "mlp": MLPRegressor(),
+    "enet": ElasticNet()
+}
+```
+
+And than define the forecast object:
+
+```{python}
+from mlforecast import MLForecast
+from mlforecast.utils import PredictionIntervals
+mlf = MLForecast(
+    models=ml_models,
+    freq="h",
+    lags=list(range(1, 24)),
+    date_features=["month", "day", "dayofweek", "week", "hour"]
+)
+```
+
+Let's now define the backtesting parameters. We will use a backtesting with four testing partitions, each testing partition with length of 72 hours, and overlapping of 12 hours between each partition. In adddion we will set a 95% prediction intervals using conformal distribution method:
+
+```{python}
+#| label: Backtesting settings
+h = 72
+step_size = 12
+partitions = 4
+n_windows = 3
+method = "conformal_distribution"
+pi = PredictionIntervals(h=h, n_windows = n_windows, method = method)
+levels = [95]
+```
+
+Let's run the backtesting using the `cross_validation` method:
+```{python}
+#| label: Run the backtesting
+bkt_df = mlf.cross_validation(
+        df = ts,
+        step_size= step_size,
+        n_windows=partitions,
+        prediction_intervals=PredictionIntervals(n_windows=2, h=h),
+        level= levels,
+        h=h,
+        fitted=True,)
+```
+
+
+
+```{python}
+bkt_df
+```
+
+
+Last but not least, let's plot the results:
+```{python}
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
+
+partitions_labels =  bkt_df["cutoff"].unique()
+
+ts_sub = ts[ts["ds"] > ts["ds"].max() -  datetime.timedelta(hours = 24 * 7)]
+fig = make_subplots(rows=partitions, cols=1, subplot_titles= ["Partitions: " + str(i) for i in partitions_labels])
+
+
+r = 1
+
+for i in partitions_labels:
+    if r == 1:
+        showlegend = True
+    else:
+        showlegend = False
+    bkt_sub = bkt_df[bkt_df["cutoff"] == i]
+    fig.append_trace(go.Scatter(x= ts_sub["ds"], y=ts_sub["y"], legendgroup = "actual", showlegend = showlegend, mode='lines', name='Actual', line=dict(color='#023047', width=2)), row = r, col = 1)
+    fig.append_trace(go.Scatter(x=bkt_sub["ds"], y= bkt_sub["knn"], mode='lines', name='k-nearest neighbors', legendgroup = "knn", showlegend = showlegend, line=dict(color='#2a9d8f', width=1.5, dash = "dash")), row = r, col = 1)
+    fig.append_trace(go.Scatter(x=bkt_sub["ds"], y= bkt_sub["mlp"], mode='lines', name='Multi-layer Perceptron',legendgroup = "mlp", showlegend = showlegend, line=dict(color='#0077b6', width=1.5, dash = "dot")), row = r, col = 1)
+    fig.append_trace(go.Scatter(x=bkt_sub["ds"], y= bkt_sub["enet"], mode='lines', name='ElasticNet',legendgroup = "enet", showlegend = showlegend, line=dict(color='#ffc8dd', width=1.5, dash = "dot")), row = r, col = 1)
+    r = r + 1
+
+
+fig.update_layout(height=600)
+fig.show()
+
+```
