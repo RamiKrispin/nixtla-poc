@@ -49,12 +49,16 @@ from utilsforecast.plotting import plot_series
 plot_series(ts, engine = "plotly").update_layout(height=300)
 ```
 ## Set the Backtesting Process
+In the following example, we will demonstrate how to set a simple backtesting process that train multiple machine learning models.
+
 
 Let's start by defining the models:
 
 - Regression based on k-nearest neighbors (see model [documentation](https://scikit-learn.org/1.5/modules/generated/sklearn.neighbors.KNeighborsRegressor.html))
 - Multi-layer Perceptron regressor (see model [documentation](https://scikit-learn.org/1.5/modules/generated/sklearn.neural_network.MLPRegressor.html))
 - ElasticNet - Linear regression with combined L1 and L2 priors as regularizer (see model [documentation](https://scikit-learn.org/1.5/modules/generated/sklearn.linear_model.ElasticNet.html))
+
+Note that we will set an initial higher max iteration for the Multi-layer Perceptron and ElasticNet models using the `max_iter` argument:
 
 
 ```{python}
@@ -63,28 +67,43 @@ from sklearn.linear_model import  ElasticNet
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.neural_network import MLPRegressor
 
+
+
 ml_models = {
     "knn": KNeighborsRegressor(),
-    "mlp": MLPRegressor(),
-    "enet": ElasticNet()
+    "mlp": MLPRegressor(max_iter=1000),
+    "enet": ElasticNet(max_iter=1000)
+
 }
 ```
 
-And than define the forecast object:
+We will use the following features:
+
+- Lags - lag 1 and 24
+- Seasonal features - monthly, daily, day of the week, weekly
+
+```{python}
+lags = [1, 24]
+date_features = ["month", "day", "dayofweek", "week", "hour"]
+```
+
+
+Let's define the forecast object:
 
 ```{python}
 # | label: set_forecast_obj
 from mlforecast import MLForecast
 from mlforecast.utils import PredictionIntervals
+
 mlf = MLForecast(
     models=ml_models,
     freq="h",
-    lags=list(range(1, 24)),
-    date_features=["month", "day", "dayofweek", "week", "hour"]
+    lags = lags,
+    date_features = date_features
 )
 ```
 
-Let's now define the backtesting parameters. We will use a backtesting with four testing partitions, each testing partition with length of 72 hours, and overlapping of 12 hours between each partition. In adddion we will set a 95% prediction intervals using conformal distribution method:
+Next, we will define the backtesting parameters. We will use a backtesting with four testing partitions, each testing partition with length of 72 hours, and overlapping of 12 hours between each partition. In adddion we will set a 95% prediction intervals using conformal distribution method:
 
 ```{python}
 #| label: backtesting_settings
@@ -98,6 +117,7 @@ levels = [95]
 ```
 
 Let's run the backtesting using the `cross_validation` method:
+
 ```{python}
 #| label: run_the_backtesting
 bkt_df = mlf.cross_validation(
@@ -117,6 +137,22 @@ bkt_df = mlf.cross_validation(
 bkt_df.head()
 ```
 
+For convenience reasons, we will map to the partition label their numeric order (as opposed to the timestamp):
+```{python}
+#| label: Partition mapping
+cutoff = bkt_df["cutoff"].unique()
+partitions_mapping = pd.DataFrame({"cutoff": cutoff, 
+	"partition": range(1, len(cutoff) + 1)})
+
+partitions_mapping.head()
+```
+
+
+Let's merge it to the backtesting table:
+
+```{python}
+bkt_df = bkt_df.merge(partitions_mapping, how = "left", on = ["cutoff"])
+```
 
 Last but not least, let's plot the results:
 ```{python}
@@ -124,7 +160,7 @@ Last but not least, let's plot the results:
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 
-partitions_labels =  bkt_df["cutoff"].unique()
+partitions_labels =  bkt_df["partition"].unique()
 
 ts_sub = ts[ts["ds"] > ts["ds"].max() -  datetime.timedelta(hours = 24 * 7)]
 fig = make_subplots(rows=partitions, cols=1, subplot_titles= ["Partitions: " + str(i) for i in partitions_labels])
@@ -137,7 +173,7 @@ for i in partitions_labels:
         showlegend = True
     else:
         showlegend = False
-    bkt_sub = bkt_df[bkt_df["cutoff"] == i]
+    bkt_sub = bkt_df[bkt_df["partition"] == i]
     fig.append_trace(go.Scatter(x= ts_sub["ds"], y=ts_sub["y"], legendgroup = "actual", showlegend = showlegend, mode='lines', name='Actual', line=dict(color='#023047', width=2)), row = r, col = 1)
     fig.append_trace(go.Scatter(x=bkt_sub["ds"], y= bkt_sub["knn"], mode='lines', name='k-nearest neighbors', legendgroup = "knn", showlegend = showlegend, line=dict(color='#2a9d8f', width=1.5, dash = "dash")), row = r, col = 1)
     fig.append_trace(go.Scatter(x=bkt_sub["ds"], y= bkt_sub["mlp"], mode='lines', name='Multi-layer Perceptron',legendgroup = "mlp", showlegend = showlegend, line=dict(color='#0077b6', width=1.5, dash = "dot")), row = r, col = 1)
@@ -154,6 +190,15 @@ fig.show()
 
 ## Scoring the models
 
+In this section, we will process the backtesting output and score the models. This includes the following steps:
+- Transition the backtesting dataframe from wide to long format
+- Calculate the models performance on each testing partition
+
+We will use the following error metrics to evaluate the models performance:
+- MAPE - Mean Absolute Percentage Error
+- RMSE - Root Mean Square Error
+- Coverage - percentage of actual values that were within the prediction intervals range
+
 Let's reformat the data, transform the backtesting table - `bkt_df` from wide to long.
 
 We will use the `melt` function transition the table into long format, where we assign the transform fields names into new column named `model_label` and the corresponding values into the `value` column:
@@ -162,7 +207,7 @@ We will use the `melt` function transition the table into long format, where we 
 models = list(ml_models.keys()) 
 bkt_long = pd.melt(
     bkt_df,
-    id_vars=["unique_id", "ds", "cutoff", "y"],
+    id_vars=["unique_id", "ds", "partition", "y"],
     value_vars=models + [f"{model}-lo-95" for model in models] \
     				  + [f"{model}-hi-95" for model in models],
     var_name="model_label",
@@ -189,16 +234,7 @@ bkt_long["type"] = zip(*bkt_long["model_label"].map(split_model_confidence))
 bkt_long.head()
 ```
 
-Next, we will relabel the partitions values into a numeric value represents their order. First, let's create mapping between the `cutoff` field and the partition number:
 
-```{python}
-#| label: Partition mapping
-cutoff = bkt_long["cutoff"].unique()
-partitions_mapping = pd.DataFrame({"cutoff": cutoff, 
-	"partition": range(1, len(cutoff) + 1)})
-
-partitions_mapping.head()
-```
 
 In addition, we will map the model functions name to the labels we created and merge it later with the backtesting table:
 
@@ -215,9 +251,8 @@ Next, let's use the `pivot` function to pivot the `type` filed into three new fi
 ```{python}
 #| label: Pivot
 bkt = (bkt_long
-.pivot(index = ["unique_id", "ds", "model_label","cutoff", "y"], columns = "type", values = "value")
+.pivot(index = ["unique_id", "ds", "model_label","partition", "y"], columns = "type", values = "value")
 .reset_index()
-.merge(partitions_mapping, how = "left", on = ["cutoff"])
 .merge(models_mapping, how = "left", on = ["model_label"])
 )
 bkt.head()
@@ -268,19 +303,165 @@ score_df = (bkt
 score_df
 ```
 
+
+Creating a leaderboard table:
+
+```{python}
+leaderboard = (bkt
+.groupby(["unique_id", "model_label", "model_name"])[["unique_id", "model_label", "model_name", "partition", "y", "forecast", "lower", "upper"]]
+.apply(score)
+.reset_index()
+.sort_values(by = "mape")
+)
+
+leaderboard
+```
+
+
+
+## Experimentation
+
+Let's now generalized the previous steps and set up an experimentation. The mean goal is to identify which model perform best. This includes identify the tuning parameters and features yield the best performance. 
+
+Let's take the three models we used before and try different tuning parameters:
+- For the Multi-layer Perceptron regressor  we will test different hidden layer size setting
+- For the ElasticNet model we will test different l1 ratio which defines the ration between L1 and L2 penalty
+
+
+```{python}
+ml_models = {
+    "knn": KNeighborsRegressor(),
+    "mlp1": MLPRegressor(max_iter=2000, hidden_layer_sizes = (100,)),
+    "mlp2": MLPRegressor(max_iter=2000, hidden_layer_sizes = (50,)),
+    "mlp3": MLPRegressor(max_iter=2000, hidden_layer_sizes = (200,)),
+    "enet1": ElasticNet(max_iter=2000, l1_ratio = 0, tol=0.001),
+    "enet2": ElasticNet(max_iter=2000, l1_ratio = 0.5, tol=0.001),
+    "enet3": ElasticNet(max_iter=2000, l1_ratio = 1, tol=0.001),
+
+}
+```
+
+We will use the same features settings as before:
+```{python}
+#| label: features_settings
+lags = [1, 24]
+date_features = ["month", "day", "dayofweek", "week", "hour"]
+```
+
+And the same backtesting settings:
+
+```{python}
+#| label: backtesting_settings_2
+h = 72
+step_size = 12
+partitions = 4
+n_windows = 3
+method = "conformal_distribution"
+pi = PredictionIntervals(h=h, n_windows = n_windows, method = method)
+levels = [95]
+```
+
+
+
+Let's set the forecasting object:
+
+```{python}
+#| label: set_forecasting_obj
+mlf = MLForecast(
+    models=ml_models,
+    freq="h",
+    lags = lags,
+    date_features= date_features
+)
+```
+
+And apply the backtesting:
+```{python}
+#| label: set_backtesting
+bkt_df = mlf.cross_validation(
+        df = ts,
+        step_size= step_size,
+        n_windows=partitions,
+        prediction_intervals=PredictionIntervals(n_windows=2, h=h),
+        level= levels,
+        h=h,
+        fitted=True,)
+```
+
+
+We will use the following function to transform the backtesting object from wide to long:
+
+```{python}
+#| label: from_wide_2_long
+def bkt_wide_2_long(bkt, models):
+    # Mapping the models labels
+    model_labels = list(models.keys())
+    model_name = [type(s).__name__ for s in models.values()] 
+    models_mapping = pd.DataFrame({"model_label": model_labels, "model_name": model_name})
+    # Mapping the partitions
+    cutoff = bkt["cutoff"].unique()
+    partitions_mapping = pd.DataFrame({"cutoff": cutoff, 
+	"partition": range(1, len(cutoff) + 1)})
+    bkt = bkt.merge(partitions_mapping, how = "left", on = ["cutoff"])
+    # Melting the bkt object to long
+    bkt_long = pd.melt(
+        bkt,
+        id_vars=["unique_id", "ds", "partition", "y"],
+        value_vars=model_labels + [f"{model}-lo-95" for model in model_labels] \
+           				  + [f"{model}-hi-95" for model in model_labels],
+        var_name="model_label",
+        value_name="value",
+    )
+
+    bkt_long["model_label"],bkt_long["type"] = zip(*bkt_long["model_label"].map(split_model_confidence))
+    
+    bkt = (bkt_long
+            .pivot(index = ["unique_id", "ds", "model_label","partition", "y"], columns = "type", values = "value")
+            .reset_index()
+            .merge(models_mapping, how = "left", on = ["model_label"])
+            )
+
+    return bkt
+```
+
+
+```{python}
+#| label: convert_to_long
+bkt = bkt_wide_2_long(bkt = bkt_df, models = ml_models)
+
+bkt.head()
+```
+
+
+
+```{python}
+#| label: score_results
+score_df = (bkt
+.groupby(["unique_id", "model_label", "model_name", "partition"])[["unique_id", "model_label", "model_name", "partition", "y", "forecast", "lower", "upper"]]
+.apply(score)
+.reset_index()
+)
+
+score_df
+```
+
+
+
 ## Logging the Results to MLflow
 
 Let's load the MLflow library and define the experiment name:
 ```{python}
+#| label: set_experiment
 import mlflow
 import datetime
-experiment_name = "ml_models"
+experiment_name = "ml_forecast_exp01"
 mlflow_path = "file:///mlruns"
 ```
 
 We will log the backtesting parameters at tag:
 
 ```{python}
+#| label: define_tags
 tags = {"h": h,
 "step_size": step_size,
 "partitions": partitions,
@@ -293,6 +474,7 @@ tags = {"h": h,
 
 
 ```{python}
+#| label: create_experiment
 try:
     mlflow.create_experiment(name = experiment_name,
                             artifact_location= mlflow_path,
@@ -307,11 +489,13 @@ except:
 
 
 ```{python}
+#| label: define_run_time
 run_time = datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S")
 ```
 
 
 ```{python}
+#| label: log_results
 for index, row in score_df.iterrows():
     run_name = row["model_label"] + "-" + run_time 
     with mlflow.start_run(experiment_id = meta.experiment_id, run_name = run_name,
@@ -322,13 +506,53 @@ for index, row in score_df.iterrows():
         model_params["model_name"] =  row["model_name"]
         model_params["model_label"] =  row["model_label"]
         model_params["partition"] =  row["partition"]
-        model_params["lags"] =  list(range(1, 24))
-        model_params["date_features"] = ["month", "day", "dayofweek","week", "hour"]
+        model_params["lags"] =  lags
+        model_params["date_features"] = date_features
         mlflow.log_params(model_params)
         mlflow.log_metric("mape", row["mape"])
         mlflow.log_metric("rmse", row["rmse"])
         mlflow.log_metric("coverage", row["coverage"])
 ```
 
+
+
+```{python}
+#| label: get_results
+results = mlflow.search_runs(experiment_ids=[meta.experiment_id], order_by=["metrics.mape"])
+
+results.head()
+```
+
+
+Plot error distribution:
+
+```{python}
+#| label: plot_error
+import plotly.express as px
+fig = px.box(x= results["tags.model_label"], y= 100 * results["metrics.mape"], color= results["tags.model_name"])
+
+# Add jitter
+fig.update_traces(boxpoints='all', jitter=0.3, pointpos=-2)
+
+fig.update_layout(
+    title = "Models Error Distribution",
+    legend_title_text = "Models Family",
+    xaxis_title="Model Label",
+    yaxis_title="MAPE (%)"
+)
+```
+Identify best model:
+
+```{python}
+#| label: create_leaderboard
+leaderboard = (results.
+groupby(["experiment_id", "status", "tags.model_label", "tags.model_name"])["metrics.mape"]
+.mean()
+.reset_index()
+.sort_values(by = "metrics.mape")
+)
+
+leaderboard
+```
 
 
