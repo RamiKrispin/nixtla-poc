@@ -1,0 +1,15 @@
+artifact_uri: file:///mlruns/0697fbd3cf444f19b366ff1874834d40/artifacts
+end_time: 1734442824376
+entry_point_name: ''
+experiment_id: '515243420851713172'
+lifecycle_stage: active
+run_id: 0697fbd3cf444f19b366ff1874834d40
+run_name: ridge-2024-12-17 13-40-20
+run_uuid: 0697fbd3cf444f19b366ff1874834d40
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1734442824288
+status: 3
+tags: []
+user_id: root

@@ -1,0 +1,15 @@
+artifact_uri: file:///mlruns/159179f856c0492d999acaeb11c5fba0/artifacts
+end_time: 1734443188803
+entry_point_name: ''
+experiment_id: '515243420851713172'
+lifecycle_stage: active
+run_id: 159179f856c0492d999acaeb11c5fba0
+run_name: xgboost-2024-12-17 13-46-23
+run_uuid: 159179f856c0492d999acaeb11c5fba0
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1734443188666
+status: 3
+tags: []
+user_id: root

@@ -8,15 +8,32 @@
                 "python.selectInterpreter": "/opt/forecasting-poc/bin/python3"
             },
             "extensions": [
-                "quarto.quarto",
+                // Container
                 "ms-azuretools.vscode-docker",
+                "ms-vscode-remote.remote-containers",
+                //Python
                 "ms-python.python",
                 "ms-python.vscode-pylance",
-                "ms-vscode-remote.remote-containers",
+                // "charliermarsh.ruff",
+                // HTML
+                "ms-vscode.live-server",
+                // Documents/Settings
                 "yzhang.markdown-all-in-one",
+                "quarto.quarto",
                 "redhat.vscode-yaml",
                 "ms-toolsai.jupyter",
-                "ms-toolsai.datawrangler"
+                "streetsidesoftware.code-spell-checker",
+                "tamasfe.even-better-toml",
+                //Code
+                "oderwat.indent-rainbow",
+                // Data
+                "mechatroner.rainbow-csv",
+                "ms-toolsai.datawrangler",
+                // Git
+                "mhutchie.git-graph",
+                "mhutchie.git-graph",
+                // Misc
+                "streetsidesoftware.code-spell-checker"
             ]
         }
     },

@@ -141,16 +141,22 @@ require(['plotly'], function(Plotly) {
 <span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statistics <span class="im">import</span> mean</span>
 <span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> plotly.express <span class="im">as</span> px</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>Load metadata</p>
+<div id="load-the-metadata" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>raw_json <span class="op">=</span> <span class="bu">open</span>(<span class="st">"./settings/settings.json"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>meta_json <span class="op">=</span> json.load(raw_json)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>backtesting_path <span class="op">=</span> meta_json[<span class="st">"data"</span>][<span class="st">"backtesting_path"</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 </section>
 <section id="load-the-data" class="level2">
 <h2 class="anchored" data-anchor-id="load-the-data">Load the Data</h2>
 <p>Reformat the data</p>
-<p>::: {#cell-Loading data .cell execution_count=2}</p>
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>ts <span class="op">=</span> pd.read_csv(<span class="st">"data/data.csv"</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>ts[<span class="st">"ds"</span>] <span class="op">=</span> pd.to_datetime(ts[<span class="st">"ds"</span>])</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>ts <span class="op">=</span> ts.sort_values(<span class="st">"ds"</span>)</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>ts.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div id="loading-data" class="cell-output cell-output-display" data-execution_count="16">
+<p>::: {#cell-Load the data .cell execution_count=3}</p>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>ts <span class="op">=</span> pd.read_csv(<span class="st">"data/data.csv"</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>ts[<span class="st">"ds"</span>] <span class="op">=</span> pd.to_datetime(ts[<span class="st">"ds"</span>])</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>ts <span class="op">=</span> ts.sort_values(<span class="st">"ds"</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>ts.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="load-the-data" class="cell-output cell-output-display" data-execution_count="19">
 <div>
 <div>
 
@@ -203,154 +209,50 @@ require(['plotly'], function(Plotly) {
 </div>
 <p>:::</p>
 <p>Subset for the last 25 months:</p>
-<div id="subset-the-data" class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>end <span class="op">=</span> ts[<span class="st">"ds"</span>].<span class="bu">max</span>()</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>start <span class="op">=</span> end <span class="op">-</span> datetime.timedelta(hours <span class="op">=</span> <span class="dv">24</span> <span class="op">*</span> <span class="dv">31</span> <span class="op">*</span> <span class="dv">25</span>)</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>ts <span class="op">=</span> ts[ts[<span class="st">"ds"</span>] <span class="op">&gt;=</span> start]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="subset-the-data" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>end <span class="op">=</span> ts[<span class="st">"ds"</span>].<span class="bu">max</span>()</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>start <span class="op">=</span> end <span class="op">-</span> datetime.timedelta(hours <span class="op">=</span> <span class="dv">24</span> <span class="op">*</span> <span class="dv">31</span> <span class="op">*</span> <span class="dv">25</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>ts <span class="op">=</span> ts[ts[<span class="st">"ds"</span>] <span class="op">&gt;=</span> start]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="set-the-backtesting" class="level2">
 <h2 class="anchored" data-anchor-id="set-the-backtesting">Set the Backtesting</h2>
 <p>Define the forecasting models:</p>
-<div id="set-the-model-obj" class="cell" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>ml_models <span class="op">=</span> {</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"lightGBM"</span>: LGBMRegressor(),</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"xgboost"</span>: XGBRegressor(),</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"linear_regression"</span>: LinearRegression(),</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"lasso"</span>: Lasso(),</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"ridge"</span>: Ridge()</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="co"># ml_models = [lgb, xgb, lm, lasso, ridge]</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>mlf <span class="op">=</span> MLForecast(</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    models<span class="op">=</span> ml_models,  </span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    freq<span class="op">=</span><span class="st">'h'</span>, </span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    lags<span class="op">=</span><span class="bu">list</span>(<span class="bu">range</span>(<span class="dv">1</span>, <span class="dv">24</span>)),  </span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    date_features<span class="op">=</span>[<span class="st">"month"</span>, <span class="st">"day"</span>, <span class="st">"dayofweek"</span>, <span class="st">"week"</span>, <span class="st">"hour"</span>]</span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="set-the-model-obj" class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>ml_models <span class="op">=</span> {</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"lightGBM"</span>: LGBMRegressor(verbosity<span class="op">=-</span><span class="dv">1</span>),</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"xgboost"</span>: XGBRegressor(),</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"linear_regression"</span>: LinearRegression(),</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"lasso"</span>: Lasso(),</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"ridge"</span>: Ridge()</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co"># ml_models = [lgb, xgb, lm, lasso, ridge]</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>mlf <span class="op">=</span> MLForecast(</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    models<span class="op">=</span> ml_models,  </span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    freq<span class="op">=</span><span class="st">'h'</span>, </span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    lags<span class="op">=</span><span class="bu">list</span>(<span class="bu">range</span>(<span class="dv">1</span>, <span class="dv">24</span>)),  </span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    date_features<span class="op">=</span>[<span class="st">"month"</span>, <span class="st">"day"</span>, <span class="st">"dayofweek"</span>, <span class="st">"week"</span>, <span class="st">"hour"</span>]</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="backtesting-settings" class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>h <span class="op">=</span> <span class="dv">72</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>step_size <span class="op">=</span> <span class="dv">24</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>partitions <span class="op">=</span> <span class="dv">10</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>n_windows <span class="op">=</span> <span class="dv">5</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>method <span class="op">=</span> <span class="st">"conformal_distribution"</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>pi <span class="op">=</span> PredictionIntervals(h<span class="op">=</span>h, n_windows <span class="op">=</span> n_windows , method <span class="op">=</span> method)</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>levels <span class="op">=</span> [<span class="dv">95</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="backtesting-settings" class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>h <span class="op">=</span> <span class="dv">72</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>step_size <span class="op">=</span> <span class="dv">24</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>partitions <span class="op">=</span> <span class="dv">10</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>n_windows <span class="op">=</span> <span class="dv">5</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>method <span class="op">=</span> <span class="st">"conformal_distribution"</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>pi <span class="op">=</span> PredictionIntervals(h<span class="op">=</span>h, n_windows <span class="op">=</span> n_windows , method <span class="op">=</span> method)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>levels <span class="op">=</span> [<span class="dv">95</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="7d75355e" class="cell" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>bkt_df <span class="op">=</span> mlf.cross_validation(</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>        df <span class="op">=</span> ts,</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>        h <span class="op">=</span> h,</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>        step_size <span class="op">=</span> step_size,</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>        n_windows <span class="op">=</span> partitions,</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>        prediction_intervals <span class="op">=</span> pi, </span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>        level <span class="op">=</span> levels)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[LightGBM] [Info] Auto-choosing col-wise multi-threading, the overhead of testing was 0.001432 seconds.
-You can set `force_col_wise=true` to remove the overhead.
-[LightGBM] [Info] Total Bins 5994
-[LightGBM] [Info] Number of data points in the train set: 17330, number of used features: 28
-[LightGBM] [Info] Start training from score 469246.384788
-[LightGBM] [Info] Auto-choosing col-wise multi-threading, the overhead of testing was 0.001232 seconds.
-You can set `force_col_wise=true` to remove the overhead.
-[LightGBM] [Info] Total Bins 5994
-[LightGBM] [Info] Number of data points in the train set: 17690, number of used features: 28
-[LightGBM] [Info] Start training from score 468050.072022
-[LightGBM] [Info] Auto-choosing col-wise multi-threading, the overhead of testing was 0.001513 seconds.
-You can set `force_col_wise=true` to remove the overhead.
-[LightGBM] [Info] Total Bins 5994
-[LightGBM] [Info] Number of data points in the train set: 17354, number of used features: 28
-[LightGBM] [Info] Start training from score 469139.604203
-[LightGBM] [Info] Auto-choosing col-wise multi-threading, the overhead of testing was 0.001331 seconds.
-You can set `force_col_wise=true` to remove the overhead.
-[LightGBM] [Info] Total Bins 5994
-[LightGBM] [Info] Number of data points in the train set: 17714, number of used features: 28
-[LightGBM] [Info] Start training from score 467936.890547
-[LightGBM] [Info] Auto-choosing col-wise multi-threading, the overhead of testing was 0.001407 seconds.
-You can set `force_col_wise=true` to remove the overhead.
-[LightGBM] [Info] Total Bins 5994
-[LightGBM] [Info] Number of data points in the train set: 17378, number of used features: 28
-[LightGBM] [Info] Start training from score 469020.516614
-[LightGBM] [Info] Auto-choosing row-wise multi-threading, the overhead of testing was 0.000417 seconds.
-You can set `force_row_wise=true` to remove the overhead.
-And if memory is not enough, you can set `force_col_wise=true`.
-[LightGBM] [Info] Total Bins 5994
-[LightGBM] [Info] Number of data points in the train set: 17738, number of used features: 28
-[LightGBM] [Info] Start training from score 467869.911431
-[LightGBM] [Info] Auto-choosing col-wise multi-threading, the overhead of testing was 0.001372 seconds.
-You can set `force_col_wise=true` to remove the overhead.
-[LightGBM] [Info] Total Bins 5994
-[LightGBM] [Info] Number of data points in the train set: 17402, number of used features: 28
-[LightGBM] [Info] Start training from score 468942.764452
-[LightGBM] [Info] Auto-choosing col-wise multi-threading, the overhead of testing was 0.001255 seconds.
-You can set `force_col_wise=true` to remove the overhead.
-[LightGBM] [Info] Total Bins 5994
-[LightGBM] [Info] Number of data points in the train set: 17762, number of used features: 28
-[LightGBM] [Info] Start training from score 467818.064342
-[LightGBM] [Info] Auto-choosing col-wise multi-threading, the overhead of testing was 0.001506 seconds.
-You can set `force_col_wise=true` to remove the overhead.
-[LightGBM] [Info] Total Bins 5994
-[LightGBM] [Info] Number of data points in the train set: 17426, number of used features: 28
-[LightGBM] [Info] Start training from score 468888.286763
-[LightGBM] [Info] Auto-choosing col-wise multi-threading, the overhead of testing was 0.001089 seconds.
-You can set `force_col_wise=true` to remove the overhead.
-[LightGBM] [Info] Total Bins 5994
-[LightGBM] [Info] Number of data points in the train set: 17786, number of used features: 28
-[LightGBM] [Info] Start training from score 467770.123898
-[LightGBM] [Info] Auto-choosing col-wise multi-threading, the overhead of testing was 0.001078 seconds.
-You can set `force_col_wise=true` to remove the overhead.
-[LightGBM] [Info] Total Bins 5994
-[LightGBM] [Info] Number of data points in the train set: 17450, number of used features: 28
-[LightGBM] [Info] Start training from score 468834.192077
-[LightGBM] [Info] Auto-choosing col-wise multi-threading, the overhead of testing was 0.001471 seconds.
-You can set `force_col_wise=true` to remove the overhead.
-[LightGBM] [Info] Total Bins 5994
-[LightGBM] [Info] Number of data points in the train set: 17810, number of used features: 28
-[LightGBM] [Info] Start training from score 467731.935823
-[LightGBM] [Info] Auto-choosing col-wise multi-threading, the overhead of testing was 0.001748 seconds.
-You can set `force_col_wise=true` to remove the overhead.
-[LightGBM] [Info] Total Bins 5994
-[LightGBM] [Info] Number of data points in the train set: 17474, number of used features: 28
-[LightGBM] [Info] Start training from score 468780.458308
-[LightGBM] [Info] Auto-choosing col-wise multi-threading, the overhead of testing was 0.001478 seconds.
-You can set `force_col_wise=true` to remove the overhead.
-[LightGBM] [Info] Total Bins 5994
-[LightGBM] [Info] Number of data points in the train set: 17834, number of used features: 28
-[LightGBM] [Info] Start training from score 467682.217089
-[LightGBM] [Info] Auto-choosing row-wise multi-threading, the overhead of testing was 0.000646 seconds.
-You can set `force_row_wise=true` to remove the overhead.
-And if memory is not enough, you can set `force_col_wise=true`.
-[LightGBM] [Info] Total Bins 5994
-[LightGBM] [Info] Number of data points in the train set: 17498, number of used features: 28
-[LightGBM] [Info] Start training from score 468730.181573
-[LightGBM] [Info] Auto-choosing col-wise multi-threading, the overhead of testing was 0.001445 seconds.
-You can set `force_col_wise=true` to remove the overhead.
-[LightGBM] [Info] Total Bins 5994
-[LightGBM] [Info] Number of data points in the train set: 17858, number of used features: 28
-[LightGBM] [Info] Start training from score 467600.108565
-[LightGBM] [Info] Auto-choosing col-wise multi-threading, the overhead of testing was 0.001417 seconds.
-You can set `force_col_wise=true` to remove the overhead.
-[LightGBM] [Info] Total Bins 5994
-[LightGBM] [Info] Number of data points in the train set: 17522, number of used features: 28
-[LightGBM] [Info] Start training from score 468647.783064
-[LightGBM] [Info] Auto-choosing col-wise multi-threading, the overhead of testing was 0.001180 seconds.
-You can set `force_col_wise=true` to remove the overhead.
-[LightGBM] [Info] Total Bins 5994
-[LightGBM] [Info] Number of data points in the train set: 17882, number of used features: 28
-[LightGBM] [Info] Start training from score 467493.942764
-[LightGBM] [Info] Auto-choosing col-wise multi-threading, the overhead of testing was 0.001287 seconds.
-You can set `force_col_wise=true` to remove the overhead.
-[LightGBM] [Info] Total Bins 5994
-[LightGBM] [Info] Number of data points in the train set: 17546, number of used features: 28
-[LightGBM] [Info] Start training from score 468545.938421
-[LightGBM] [Info] Auto-choosing col-wise multi-threading, the overhead of testing was 0.001445 seconds.
-You can set `force_col_wise=true` to remove the overhead.
-[LightGBM] [Info] Total Bins 5994
-[LightGBM] [Info] Number of data points in the train set: 17906, number of used features: 28
-[LightGBM] [Info] Start training from score 467417.387929</code></pre>
-</div>
+<div id="run-the-backtesting" class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>bkt_df <span class="op">=</span> mlf.cross_validation(</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>        df <span class="op">=</span> ts,</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>        h <span class="op">=</span> h,</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>        step_size <span class="op">=</span> step_size,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>        n_windows <span class="op">=</span> partitions,</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>        prediction_intervals <span class="op">=</span> pi, </span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>        level <span class="op">=</span> levels)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>/opt/forecasting-poc/lib/python3.10/site-packages/sklearn/linear_model/_coordinate_descent.py:697: ConvergenceWarning:
 
@@ -434,9 +336,9 @@ Objective did not converge. You might want to increase the number of iterations,
 </code></pre>
 </div>
 </div>
-<p>::: {#cell-Review the bkt .cell execution_count=7}</p>
+<p>::: {#cell-Review the bkt .cell execution_count=8}</p>
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>bkt_df.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div id="review-the-bkt" class="cell-output cell-output-display" data-execution_count="21">
+<div id="review-the-bkt" class="cell-output cell-output-display" data-execution_count="24">
 <div>
 <div>
 
@@ -584,33 +486,93 @@ Objective did not converge. You might want to increase the number of iterations,
 </div>
 </div>
 <p>:::</p>
-<p>::: {#cell-Reformat the bkt obj .cell execution_count=8}</p>
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>model_label <span class="op">=</span> <span class="bu">list</span>(ml_models.keys()) </span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>model_name <span class="op">=</span> [<span class="bu">type</span>(s).<span class="va">__name__</span> <span class="cf">for</span> s <span class="kw">in</span> <span class="bu">list</span>(ml_models.values())]  </span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>lower <span class="op">=</span> [s <span class="op">+</span> <span class="st">"-lo-95"</span> <span class="cf">for</span> s <span class="kw">in</span> model_label]</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>upper<span class="op">=</span> [s <span class="op">+</span> <span class="st">"-hi-95"</span> <span class="cf">for</span> s <span class="kw">in</span> model_label]</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>models_mapping <span class="op">=</span> pd.DataFrame({<span class="st">"model_label"</span>: model_label, </span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>            <span class="st">"model_name"</span>: model_name})</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>d1 <span class="op">=</span> pd.melt(bkt_df, id_vars<span class="op">=</span> [<span class="st">"unique_id"</span>, <span class="st">"ds"</span>, <span class="st">"cutoff"</span>], </span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>value_vars<span class="op">=</span> model_label, var_name <span class="op">=</span> <span class="st">"model_label"</span> , value_name <span class="op">=</span> <span class="st">"forecast"</span>)</span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>d2 <span class="op">=</span> pd.melt(bkt_df, id_vars<span class="op">=</span> [<span class="st">"unique_id"</span>, <span class="st">"ds"</span>, <span class="st">"cutoff"</span>], </span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>value_vars<span class="op">=</span> lower, var_name <span class="op">=</span> <span class="st">"model_label"</span> , value_name <span class="op">=</span> <span class="st">"lower"</span>)</span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>d2[<span class="st">"model_label"</span>] <span class="op">=</span> d2[<span class="st">"model_label"</span>].<span class="bu">str</span>.replace(<span class="st">"-lo-95"</span>, <span class="st">""</span>)</span>
-<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>d3 <span class="op">=</span> pd.melt(bkt_df, id_vars<span class="op">=</span> [<span class="st">"unique_id"</span>, <span class="st">"ds"</span>, <span class="st">"cutoff"</span>], </span>
-<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>value_vars<span class="op">=</span> upper, var_name <span class="op">=</span> <span class="st">"model_label"</span>, value_name <span class="op">=</span> <span class="st">"upper"</span>)</span>
-<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>d3[<span class="st">"model_label"</span>] <span class="op">=</span> d3[<span class="st">"model_label"</span>].<span class="bu">str</span>.replace(<span class="st">"-hi-95"</span>, <span class="st">""</span>)</span>
-<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>bkt_long <span class="op">=</span> (</span>
-<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>    d1</span>
-<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>.merge(right <span class="op">=</span> d2, how <span class="op">=</span> <span class="st">"left"</span>, on <span class="op">=</span> [<span class="st">"unique_id"</span>, <span class="st">"ds"</span>, <span class="st">"cutoff"</span>, <span class="st">"model_label"</span>])</span>
-<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>.merge(right <span class="op">=</span> d3, how <span class="op">=</span> <span class="st">"left"</span>, on <span class="op">=</span> [<span class="st">"unique_id"</span>, <span class="st">"ds"</span>, <span class="st">"cutoff"</span>, <span class="st">"model_label"</span>])</span>
-<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>.merge(right <span class="op">=</span>  models_mapping, how <span class="op">=</span> <span class="st">"left"</span>, on <span class="op">=</span> [<span class="st">"model_label"</span>])</span>
-<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>.merge(right <span class="op">=</span>  ts, how <span class="op">=</span> <span class="st">"left"</span>, on <span class="op">=</span> [<span class="st">"unique_id"</span>, <span class="st">"ds"</span>])</span>
-<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>bkt_long.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div id="reformat-the-bkt-obj" class="cell-output cell-output-display" data-execution_count="22">
+<p>::: {#cell-Review a model .cell execution_count=9}</p>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>bkt_df[[<span class="st">"ds"</span>, <span class="st">"lightGBM"</span>, <span class="st">"lightGBM-lo-95"</span>, <span class="st">"lightGBM-hi-95"</span>]].head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="review-a-model" class="cell-output cell-output-display" data-execution_count="25">
+<div>
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">ds</th>
+<th data-quarto-table-cell-role="th">lightGBM</th>
+<th data-quarto-table-cell-role="th">lightGBM-lo-95</th>
+<th data-quarto-table-cell-role="th">lightGBM-hi-95</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>2024-04-14 00:00:00</td>
+<td>422716.385199</td>
+<td>421022.905138</td>
+<td>424409.865260</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>2024-04-14 01:00:00</td>
+<td>422439.422659</td>
+<td>417651.607031</td>
+<td>427227.238288</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>2024-04-14 02:00:00</td>
+<td>417209.926483</td>
+<td>407277.565240</td>
+<td>427142.287725</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>2024-04-14 03:00:00</td>
+<td>405820.047603</td>
+<td>392670.364652</td>
+<td>418969.730553</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>2024-04-14 04:00:00</td>
+<td>386520.594124</td>
+<td>372017.701036</td>
+<td>401023.487212</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>:::</p>
+<p>::: {#cell-Reformat the bkt obj .cell execution_count=10}</p>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>model_label <span class="op">=</span> <span class="bu">list</span>(ml_models.keys()) </span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>model_name <span class="op">=</span> [<span class="bu">type</span>(s).<span class="va">__name__</span> <span class="cf">for</span> s <span class="kw">in</span> <span class="bu">list</span>(ml_models.values())]  </span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>lower <span class="op">=</span> [s <span class="op">+</span> <span class="st">"-lo-95"</span> <span class="cf">for</span> s <span class="kw">in</span> model_label]</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>upper<span class="op">=</span> [s <span class="op">+</span> <span class="st">"-hi-95"</span> <span class="cf">for</span> s <span class="kw">in</span> model_label]</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>models_mapping <span class="op">=</span> pd.DataFrame({<span class="st">"model_label"</span>: model_label, </span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>            <span class="st">"model_name"</span>: model_name})</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>d1 <span class="op">=</span> pd.melt(bkt_df, id_vars<span class="op">=</span> [<span class="st">"unique_id"</span>, <span class="st">"ds"</span>, <span class="st">"cutoff"</span>], </span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>value_vars<span class="op">=</span> model_label, var_name <span class="op">=</span> <span class="st">"model_label"</span> , value_name <span class="op">=</span> <span class="st">"forecast"</span>)</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>d2 <span class="op">=</span> pd.melt(bkt_df, id_vars<span class="op">=</span> [<span class="st">"unique_id"</span>, <span class="st">"ds"</span>, <span class="st">"cutoff"</span>], </span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>value_vars<span class="op">=</span> lower, var_name <span class="op">=</span> <span class="st">"model_label"</span> , value_name <span class="op">=</span> <span class="st">"lower"</span>)</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>d2[<span class="st">"model_label"</span>] <span class="op">=</span> d2[<span class="st">"model_label"</span>].<span class="bu">str</span>.replace(<span class="st">"-lo-95"</span>, <span class="st">""</span>)</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>d3 <span class="op">=</span> pd.melt(bkt_df, id_vars<span class="op">=</span> [<span class="st">"unique_id"</span>, <span class="st">"ds"</span>, <span class="st">"cutoff"</span>], </span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>value_vars<span class="op">=</span> upper, var_name <span class="op">=</span> <span class="st">"model_label"</span>, value_name <span class="op">=</span> <span class="st">"upper"</span>)</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>d3[<span class="st">"model_label"</span>] <span class="op">=</span> d3[<span class="st">"model_label"</span>].<span class="bu">str</span>.replace(<span class="st">"-hi-95"</span>, <span class="st">""</span>)</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>bkt_long <span class="op">=</span> (</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>    d1</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>.merge(right <span class="op">=</span> d2, how <span class="op">=</span> <span class="st">"left"</span>, on <span class="op">=</span> [<span class="st">"unique_id"</span>, <span class="st">"ds"</span>, <span class="st">"cutoff"</span>, <span class="st">"model_label"</span>])</span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>.merge(right <span class="op">=</span> d3, how <span class="op">=</span> <span class="st">"left"</span>, on <span class="op">=</span> [<span class="st">"unique_id"</span>, <span class="st">"ds"</span>, <span class="st">"cutoff"</span>, <span class="st">"model_label"</span>])</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>.merge(right <span class="op">=</span>  models_mapping, how <span class="op">=</span> <span class="st">"left"</span>, on <span class="op">=</span> [<span class="st">"model_label"</span>])</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>.merge(right <span class="op">=</span>  ts, how <span class="op">=</span> <span class="st">"left"</span>, on <span class="op">=</span> [<span class="st">"unique_id"</span>, <span class="st">"ds"</span>])</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>bkt_long.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="reformat-the-bkt-obj" class="cell-output cell-output-display" data-execution_count="26">
 <div>
 <div>
 
@@ -698,43 +660,145 @@ Objective did not converge. You might want to increase the number of iterations,
 </div>
 </div>
 <p>:::</p>
-<p>::: {#cell-Score the models .cell execution_count=9}</p>
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> mape(y, yhat):</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    mape <span class="op">=</span> mean(<span class="bu">abs</span>(y <span class="op">-</span> yhat)<span class="op">/</span> y) </span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mape</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> rmse(y, yhat):</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    rmse <span class="op">=</span> (mean((y <span class="op">-</span> yhat) <span class="op">**</span> <span class="dv">2</span> )) <span class="op">**</span> <span class="fl">0.5</span></span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> rmse</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> coverage(y, lower, upper):</span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    coverage <span class="op">=</span> <span class="bu">sum</span>((y <span class="op">&lt;=</span> upper) <span class="op">&amp;</span> (y <span class="op">&gt;=</span> lower)) <span class="op">/</span> <span class="bu">len</span>(y)</span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> coverage</span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> score(df):</span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>    mape_score <span class="op">=</span> mape(y <span class="op">=</span> df[<span class="st">"y"</span>], yhat <span class="op">=</span> df[<span class="st">"forecast"</span>])</span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>    rmse_score <span class="op">=</span> rmse(y <span class="op">=</span> df[<span class="st">"y"</span>], yhat <span class="op">=</span> df[<span class="st">"forecast"</span>])</span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>    coverage_score <span class="op">=</span> coverage(y <span class="op">=</span> df[<span class="st">"y"</span>], lower <span class="op">=</span> df[<span class="st">"lower"</span>], upper <span class="op">=</span> df[<span class="st">"upper"</span>])</span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>    cols <span class="op">=</span> [<span class="st">"mape"</span>,<span class="st">"rmse"</span>, <span class="st">"coverage"</span>]</span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>    d <span class="op">=</span> pd.Series([mape_score, rmse_score,  coverage_score], index<span class="op">=</span>cols)</span>
-<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> d</span>
-<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>score_df <span class="op">=</span> (bkt_long</span>
-<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>.groupby([<span class="st">"unique_id"</span>, <span class="st">"model_label"</span>, <span class="st">"model_name"</span>, <span class="st">"cutoff"</span>])</span>
-<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>.<span class="bu">apply</span>(score)</span>
-<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>.reset_index()</span>
-<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>score_df.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>::: {#cell-Add partitions .cell execution_count=11}</p>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>cutoff <span class="op">=</span> bkt_long[<span class="st">"cutoff"</span>].unique()</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>partitions_mapping <span class="op">=</span> pd.DataFrame({<span class="st">"cutoff"</span>: cutoff, <span class="st">"partition"</span>: <span class="bu">range</span>(<span class="dv">1</span>, <span class="bu">len</span>(cutoff) <span class="op">+</span> <span class="dv">1</span>)})</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>partitions_mapping</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>bkt_long <span class="op">=</span> bkt_long.merge(partitions_mapping, how <span class="op">=</span> <span class="st">"left"</span>, on <span class="op">=</span> [<span class="st">"cutoff"</span>])</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>bkt_long.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="add-partitions" class="cell-output cell-output-display" data-execution_count="27">
+<div>
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">unique_id</th>
+<th data-quarto-table-cell-role="th">ds</th>
+<th data-quarto-table-cell-role="th">cutoff</th>
+<th data-quarto-table-cell-role="th">model_label</th>
+<th data-quarto-table-cell-role="th">forecast</th>
+<th data-quarto-table-cell-role="th">lower</th>
+<th data-quarto-table-cell-role="th">upper</th>
+<th data-quarto-table-cell-role="th">model_name</th>
+<th data-quarto-table-cell-role="th">y</th>
+<th data-quarto-table-cell-role="th">partition</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>1</td>
+<td>2024-04-14 00:00:00</td>
+<td>2024-04-13 23:00:00</td>
+<td>lightGBM</td>
+<td>422716.385199</td>
+<td>421022.905138</td>
+<td>424409.865260</td>
+<td>LGBMRegressor</td>
+<td>421836.39</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>1</td>
+<td>2024-04-14 01:00:00</td>
+<td>2024-04-13 23:00:00</td>
+<td>lightGBM</td>
+<td>422439.422659</td>
+<td>417651.607031</td>
+<td>427227.238288</td>
+<td>LGBMRegressor</td>
+<td>421300.67</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>1</td>
+<td>2024-04-14 02:00:00</td>
+<td>2024-04-13 23:00:00</td>
+<td>lightGBM</td>
+<td>417209.926483</td>
+<td>407277.565240</td>
+<td>427142.287725</td>
+<td>LGBMRegressor</td>
+<td>415940.13</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>1</td>
+<td>2024-04-14 03:00:00</td>
+<td>2024-04-13 23:00:00</td>
+<td>lightGBM</td>
+<td>405820.047603</td>
+<td>392670.364652</td>
+<td>418969.730553</td>
+<td>LGBMRegressor</td>
+<td>403788.77</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>1</td>
+<td>2024-04-14 04:00:00</td>
+<td>2024-04-13 23:00:00</td>
+<td>lightGBM</td>
+<td>386520.594124</td>
+<td>372017.701036</td>
+<td>401023.487212</td>
+<td>LGBMRegressor</td>
+<td>388042.74</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>:::</p>
+<p>::: {#cell-Score the models .cell execution_count=12}</p>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> mape(y, yhat):</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    mape <span class="op">=</span> mean(<span class="bu">abs</span>(y <span class="op">-</span> yhat)<span class="op">/</span> y) </span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mape</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> rmse(y, yhat):</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    rmse <span class="op">=</span> (mean((y <span class="op">-</span> yhat) <span class="op">**</span> <span class="dv">2</span> )) <span class="op">**</span> <span class="fl">0.5</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> rmse</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> coverage(y, lower, upper):</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    coverage <span class="op">=</span> <span class="bu">sum</span>((y <span class="op">&lt;=</span> upper) <span class="op">&amp;</span> (y <span class="op">&gt;=</span> lower)) <span class="op">/</span> <span class="bu">len</span>(y)</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> coverage</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> score(df):</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>    mape_score <span class="op">=</span> mape(y <span class="op">=</span> df[<span class="st">"y"</span>], yhat <span class="op">=</span> df[<span class="st">"forecast"</span>])</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>    rmse_score <span class="op">=</span> rmse(y <span class="op">=</span> df[<span class="st">"y"</span>], yhat <span class="op">=</span> df[<span class="st">"forecast"</span>])</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>    coverage_score <span class="op">=</span> coverage(y <span class="op">=</span> df[<span class="st">"y"</span>], lower <span class="op">=</span> df[<span class="st">"lower"</span>], upper <span class="op">=</span> df[<span class="st">"upper"</span>])</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>    cols <span class="op">=</span> [<span class="st">"mape"</span>,<span class="st">"rmse"</span>, <span class="st">"coverage"</span>]</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>    d <span class="op">=</span> pd.Series([mape_score, rmse_score,  coverage_score], index<span class="op">=</span>cols)</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> d</span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>score_df <span class="op">=</span> (bkt_long</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>.groupby([<span class="st">"unique_id"</span>, <span class="st">"model_label"</span>, <span class="st">"model_name"</span>, <span class="st">"partition"</span>])</span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>.<span class="bu">apply</span>(score)</span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>.reset_index()</span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>score_df.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>/tmp/ipykernel_26232/1729970652.py:25: DeprecationWarning:
+<pre><code>/tmp/ipykernel_12518/1975747771.py:25: DeprecationWarning:
 
 DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
 </code></pre>
 </div>
-<div id="score-the-models" class="cell-output cell-output-display" data-execution_count="23">
+<div id="score-the-models" class="cell-output cell-output-display" data-execution_count="28">
 <div>
 <div>
 
@@ -746,7 +810,7 @@ DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprec
 <th data-quarto-table-cell-role="th">unique_id</th>
 <th data-quarto-table-cell-role="th">model_label</th>
 <th data-quarto-table-cell-role="th">model_name</th>
-<th data-quarto-table-cell-role="th">cutoff</th>
+<th data-quarto-table-cell-role="th">partition</th>
 <th data-quarto-table-cell-role="th">mape</th>
 <th data-quarto-table-cell-role="th">rmse</th>
 <th data-quarto-table-cell-role="th">coverage</th>
@@ -758,7 +822,7 @@ DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprec
 <td>1</td>
 <td>lasso</td>
 <td>Lasso</td>
-<td>2024-04-13 23:00:00</td>
+<td>1</td>
 <td>0.050913</td>
 <td>29315.983715</td>
 <td>0.486111</td>
@@ -768,7 +832,7 @@ DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprec
 <td>1</td>
 <td>lasso</td>
 <td>Lasso</td>
-<td>2024-04-14 23:00:00</td>
+<td>2</td>
 <td>0.037723</td>
 <td>19034.393950</td>
 <td>0.763889</td>
@@ -778,7 +842,7 @@ DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprec
 <td>1</td>
 <td>lasso</td>
 <td>Lasso</td>
-<td>2024-04-15 23:00:00</td>
+<td>3</td>
 <td>0.017668</td>
 <td>9768.991810</td>
 <td>0.986111</td>
@@ -788,7 +852,7 @@ DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprec
 <td>1</td>
 <td>lasso</td>
 <td>Lasso</td>
-<td>2024-04-16 23:00:00</td>
+<td>4</td>
 <td>0.014224</td>
 <td>7839.292592</td>
 <td>1.000000</td>
@@ -798,7 +862,7 @@ DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprec
 <td>1</td>
 <td>lasso</td>
 <td>Lasso</td>
-<td>2024-04-17 23:00:00</td>
+<td>5</td>
 <td>0.023679</td>
 <td>13550.628885</td>
 <td>0.847222</td>
@@ -810,11 +874,11 @@ DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprec
 </div>
 </div>
 <p>:::</p>
-<p>::: {#cell-Calculate the leaderboard .cell execution_count=10}</p>
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>leaderboard <span class="op">=</span> score_df.groupby([<span class="st">"unique_id"</span>, <span class="st">"model_label"</span>, <span class="st">"model_name"</span>]).agg({<span class="st">"mape"</span>: <span class="st">"mean"</span>, <span class="st">"rmse"</span>: <span class="st">"mean"</span>, <span class="st">"coverage"</span>: <span class="st">"mean"</span>}).reset_index()</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>leaderboard.sort_values(by <span class="op">=</span> [<span class="st">"mape"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div id="calculate-the-leaderboard" class="cell-output cell-output-display" data-execution_count="24">
+<p>::: {#cell-Calculate the leaderboard .cell execution_count=13}</p>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>leaderboard <span class="op">=</span> score_df.groupby([<span class="st">"unique_id"</span>, <span class="st">"model_label"</span>, <span class="st">"model_name"</span>]).agg({<span class="st">"mape"</span>: <span class="st">"mean"</span>, <span class="st">"rmse"</span>: <span class="st">"mean"</span>, <span class="st">"coverage"</span>: <span class="st">"mean"</span>}).reset_index()</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>leaderboard.sort_values(by <span class="op">=</span> [<span class="st">"mape"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="calculate-the-leaderboard" class="cell-output cell-output-display" data-execution_count="29">
 <div>
 <div>
 
@@ -884,22 +948,22 @@ DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprec
 </div>
 </div>
 <p>:::</p>
-<p>::: {#cell-Plot the error rate .cell execution_count=11}</p>
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> px.box(score_df, x<span class="op">=</span><span class="st">"model_label"</span>, y<span class="op">=</span><span class="st">"rmse"</span>, color<span class="op">=</span><span class="st">"model_label"</span>)</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>fig.update_traces(boxpoints <span class="op">=</span> <span class="st">'all'</span>, jitter <span class="op">=</span> <span class="fl">0.3</span>, pointpos <span class="op">=</span> <span class="op">-</span><span class="fl">1.8</span>, showlegend <span class="op">=</span> <span class="va">False</span>)</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>fig.update_layout(</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    title<span class="op">=</span><span class="st">"Error Distribution"</span>,</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    xaxis_title<span class="op">=</span><span class="st">"Model"</span>,</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    yaxis_title<span class="op">=</span><span class="st">"RMSE"</span>,</span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    font<span class="op">=</span><span class="bu">dict</span>(family<span class="op">=</span><span class="st">"Arial"</span>, size<span class="op">=</span><span class="dv">14</span>, color<span class="op">=</span><span class="st">"black"</span>)</span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>fig.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>::: {#cell-Plot the error rate .cell execution_count=14}</p>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> px.box(score_df, x<span class="op">=</span><span class="st">"model_label"</span>, y<span class="op">=</span><span class="st">"rmse"</span>, color<span class="op">=</span><span class="st">"model_label"</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>fig.update_traces(boxpoints <span class="op">=</span> <span class="st">'all'</span>, jitter <span class="op">=</span> <span class="fl">0.3</span>, pointpos <span class="op">=</span> <span class="op">-</span><span class="fl">1.8</span>, showlegend <span class="op">=</span> <span class="va">False</span>)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>fig.update_layout(</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    title<span class="op">=</span><span class="st">"Error Distribution"</span>,</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    xaxis_title<span class="op">=</span><span class="st">"Model"</span>,</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    yaxis_title<span class="op">=</span><span class="st">"RMSE"</span>,</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    font<span class="op">=</span><span class="bu">dict</span>(family<span class="op">=</span><span class="st">"Arial"</span>, size<span class="op">=</span><span class="dv">14</span>, color<span class="op">=</span><span class="st">"black"</span>)</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>fig.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="plot-the-error-rate" class="cell-output cell-output-display">
-<div>                            <div id="d4308dac-e6a1-4b81-9b35-1af648987cb8" class="plotly-graph-div" style="height:525px; width:100%;"></div>            <script type="text/javascript">                require(["plotly"], function(Plotly) {                    window.PLOTLYENV=window.PLOTLYENV || {};                                    if (document.getElementById("d4308dac-e6a1-4b81-9b35-1af648987cb8")) {                    Plotly.newPlot(                        "d4308dac-e6a1-4b81-9b35-1af648987cb8",                        [{"alignmentgroup":"True","hovertemplate":"model_label=%{x}\u003cbr\u003ermse=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"lasso","marker":{"color":"#636efa"},"name":"lasso","notched":false,"offsetgroup":"lasso","orientation":"v","showlegend":false,"x":["lasso","lasso","lasso","lasso","lasso","lasso","lasso","lasso","lasso","lasso"],"x0":" ","xaxis":"x","y":[29315.98371462564,19034.393949719946,9768.991810073212,7839.292592084382,13550.628884898973,25860.58438841042,18266.907442620628,13916.795765498115,15115.674786720818,16101.556090234575],"y0":" ","yaxis":"y","type":"box","boxpoints":"all","jitter":0.3,"pointpos":-1.8},{"alignmentgroup":"True","hovertemplate":"model_label=%{x}\u003cbr\u003ermse=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"lightGBM","marker":{"color":"#EF553B"},"name":"lightGBM","notched":false,"offsetgroup":"lightGBM","orientation":"v","showlegend":false,"x":["lightGBM","lightGBM","lightGBM","lightGBM","lightGBM","lightGBM","lightGBM","lightGBM","lightGBM","lightGBM"],"x0":" ","xaxis":"x","y":[17218.066668667947,10495.262534239762,7845.148808369067,9754.698420011138,8585.153708964248,19640.882715998785,15191.343242062792,15255.697823095958,12852.596610888117,7788.317765653122],"y0":" ","yaxis":"y","type":"box","boxpoints":"all","jitter":0.3,"pointpos":-1.8},{"alignmentgroup":"True","hovertemplate":"model_label=%{x}\u003cbr\u003ermse=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"linear_regression","marker":{"color":"#00cc96"},"name":"linear_regression","notched":false,"offsetgroup":"linear_regression","orientation":"v","showlegend":false,"x":["linear_regression","linear_regression","linear_regression","linear_regression","linear_regression","linear_regression","linear_regression","linear_regression","linear_regression","linear_regression"],"x0":" ","xaxis":"x","y":[29021.438982121,18822.531200087342,10240.836002053624,7687.633764037622,13768.946300608632,26500.453913440346,18577.561145743515,14224.261457211738,14974.29371783539,16346.356785068989],"y0":" ","yaxis":"y","type":"box","boxpoints":"all","jitter":0.3,"pointpos":-1.8},{"alignmentgroup":"True","hovertemplate":"model_label=%{x}\u003cbr\u003ermse=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"ridge","marker":{"color":"#ab63fa"},"name":"ridge","notched":false,"offsetgroup":"ridge","orientation":"v","showlegend":false,"x":["ridge","ridge","ridge","ridge","ridge","ridge","ridge","ridge","ridge","ridge"],"x0":" ","xaxis":"x","y":[29021.446287831677,18822.673479636564,10240.7264913292,7687.653094485762,13769.038990654086,26500.671411132844,18577.686928425217,14224.254051310772,14974.240917143285,16346.238204816485],"y0":" ","yaxis":"y","type":"box","boxpoints":"all","jitter":0.3,"pointpos":-1.8},{"alignmentgroup":"True","hovertemplate":"model_label=%{x}\u003cbr\u003ermse=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"xgboost","marker":{"color":"#FFA15A"},"name":"xgboost","notched":false,"offsetgroup":"xgboost","orientation":"v","showlegend":false,"x":["xgboost","xgboost","xgboost","xgboost","xgboost","xgboost","xgboost","xgboost","xgboost","xgboost"],"x0":" ","xaxis":"x","y":[15843.452463219872,12020.66213520701,8670.466745594238,9863.54304872913,9681.493491741165,22206.794887334596,18977.01301452636,12231.028438236803,11024.23688884628,9154.48254845083],"y0":" ","yaxis":"y","type":"box","boxpoints":"all","jitter":0.3,"pointpos":-1.8}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmapgl":[{"type":"heatmapgl","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"},"margin":{"b":0,"l":0,"r":0,"t":30}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"Model"},"categoryorder":"array","categoryarray":["lasso","lightGBM","linear_regression","ridge","xgboost"]},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"RMSE"}},"legend":{"title":{"text":"model_label"},"tracegroupgap":0},"boxmode":"overlay","font":{"family":"Arial","size":14,"color":"black"},"title":{"text":"Error Distribution"}},                        {"responsive": true}                    ).then(function(){
+<div>                            <div id="3f6680b6-879e-4202-aa4d-9213296302e4" class="plotly-graph-div" style="height:525px; width:100%;"></div>            <script type="text/javascript">                require(["plotly"], function(Plotly) {                    window.PLOTLYENV=window.PLOTLYENV || {};                                    if (document.getElementById("3f6680b6-879e-4202-aa4d-9213296302e4")) {                    Plotly.newPlot(                        "3f6680b6-879e-4202-aa4d-9213296302e4",                        [{"alignmentgroup":"True","hovertemplate":"model_label=%{x}\u003cbr\u003ermse=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"lasso","marker":{"color":"#636efa"},"name":"lasso","notched":false,"offsetgroup":"lasso","orientation":"v","showlegend":false,"x":["lasso","lasso","lasso","lasso","lasso","lasso","lasso","lasso","lasso","lasso"],"x0":" ","xaxis":"x","y":[29315.98371462564,19034.393949719946,9768.991810073212,7839.292592084382,13550.628884898973,25860.58438841042,18266.907442620628,13916.795765498115,15115.674786720818,16101.556090234575],"y0":" ","yaxis":"y","type":"box","boxpoints":"all","jitter":0.3,"pointpos":-1.8},{"alignmentgroup":"True","hovertemplate":"model_label=%{x}\u003cbr\u003ermse=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"lightGBM","marker":{"color":"#EF553B"},"name":"lightGBM","notched":false,"offsetgroup":"lightGBM","orientation":"v","showlegend":false,"x":["lightGBM","lightGBM","lightGBM","lightGBM","lightGBM","lightGBM","lightGBM","lightGBM","lightGBM","lightGBM"],"x0":" ","xaxis":"x","y":[17218.066668667947,10495.262534239762,7845.148808369067,9754.698420011138,8585.153708964248,19640.882715998785,15191.343242062792,15255.697823095958,12852.596610888117,7788.317765653122],"y0":" ","yaxis":"y","type":"box","boxpoints":"all","jitter":0.3,"pointpos":-1.8},{"alignmentgroup":"True","hovertemplate":"model_label=%{x}\u003cbr\u003ermse=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"linear_regression","marker":{"color":"#00cc96"},"name":"linear_regression","notched":false,"offsetgroup":"linear_regression","orientation":"v","showlegend":false,"x":["linear_regression","linear_regression","linear_regression","linear_regression","linear_regression","linear_regression","linear_regression","linear_regression","linear_regression","linear_regression"],"x0":" ","xaxis":"x","y":[29021.438982121,18822.531200087342,10240.836002053624,7687.633764037622,13768.946300608632,26500.453913440346,18577.561145743515,14224.261457211738,14974.29371783539,16346.356785068989],"y0":" ","yaxis":"y","type":"box","boxpoints":"all","jitter":0.3,"pointpos":-1.8},{"alignmentgroup":"True","hovertemplate":"model_label=%{x}\u003cbr\u003ermse=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"ridge","marker":{"color":"#ab63fa"},"name":"ridge","notched":false,"offsetgroup":"ridge","orientation":"v","showlegend":false,"x":["ridge","ridge","ridge","ridge","ridge","ridge","ridge","ridge","ridge","ridge"],"x0":" ","xaxis":"x","y":[29021.446287831677,18822.673479636564,10240.7264913292,7687.653094485762,13769.038990654086,26500.671411132844,18577.686928425217,14224.254051310772,14974.240917143285,16346.238204816485],"y0":" ","yaxis":"y","type":"box","boxpoints":"all","jitter":0.3,"pointpos":-1.8},{"alignmentgroup":"True","hovertemplate":"model_label=%{x}\u003cbr\u003ermse=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"xgboost","marker":{"color":"#FFA15A"},"name":"xgboost","notched":false,"offsetgroup":"xgboost","orientation":"v","showlegend":false,"x":["xgboost","xgboost","xgboost","xgboost","xgboost","xgboost","xgboost","xgboost","xgboost","xgboost"],"x0":" ","xaxis":"x","y":[15843.452463219872,12020.66213520701,8670.466745594238,9863.54304872913,9681.493491741165,22206.794887334596,18977.01301452636,12231.028438236803,11024.23688884628,9154.48254845083],"y0":" ","yaxis":"y","type":"box","boxpoints":"all","jitter":0.3,"pointpos":-1.8}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmapgl":[{"type":"heatmapgl","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"},"margin":{"b":0,"l":0,"r":0,"t":30}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"Model"},"categoryorder":"array","categoryarray":["lasso","lightGBM","linear_regression","ridge","xgboost"]},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"RMSE"}},"legend":{"title":{"text":"model_label"},"tracegroupgap":0},"boxmode":"overlay","font":{"family":"Arial","size":14,"color":"black"},"title":{"text":"Error Distribution"}},                        {"responsive": true}                    ).then(function(){
                             
-var gd = document.getElementById('d4308dac-e6a1-4b81-9b35-1af648987cb8');
+var gd = document.getElementById('3f6680b6-879e-4202-aa4d-9213296302e4');
 var x = new MutationObserver(function (mutations, observer) {{
         var display = window.getComputedStyle(gd).display;
         if (!display || display === 'none') {{
@@ -927,647 +991,63 @@ if (outputEl) {{
 </section>
 <section id="logging-the-results-with-mlflow" class="level2">
 <h2 class="anchored" data-anchor-id="logging-the-results-with-mlflow">Logging the Results with MLflow</h2>
-<p>::: {#cell-Add partitions .cell execution_count=12}</p>
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>cutoff <span class="op">=</span> bkt_long[<span class="st">"cutoff"</span>].unique()</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>partitions_mapping <span class="op">=</span> pd.DataFrame({<span class="st">"cutoff"</span>: cutoff, <span class="st">"partition"</span>: <span class="bu">range</span>(<span class="dv">1</span>, <span class="bu">len</span>(cutoff) <span class="op">+</span> <span class="dv">1</span>)})</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>partitions_mapping</span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>score_df <span class="op">=</span> score_df.merge(partitions_mapping, how <span class="op">=</span> <span class="st">"left"</span>, on <span class="op">=</span> [<span class="st">"cutoff"</span>])</span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>score_df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div id="add-partitions" class="cell-output cell-output-display" data-execution_count="26">
-<div>
-<div>
-
-
-<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
-<thead>
-<tr class="header">
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">unique_id</th>
-<th data-quarto-table-cell-role="th">model_label</th>
-<th data-quarto-table-cell-role="th">model_name</th>
-<th data-quarto-table-cell-role="th">cutoff</th>
-<th data-quarto-table-cell-role="th">mape</th>
-<th data-quarto-table-cell-role="th">rmse</th>
-<th data-quarto-table-cell-role="th">coverage</th>
-<th data-quarto-table-cell-role="th">partition</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">0</td>
-<td>1</td>
-<td>lasso</td>
-<td>Lasso</td>
-<td>2024-04-13 23:00:00</td>
-<td>0.050913</td>
-<td>29315.983715</td>
-<td>0.486111</td>
-<td>1</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">1</td>
-<td>1</td>
-<td>lasso</td>
-<td>Lasso</td>
-<td>2024-04-14 23:00:00</td>
-<td>0.037723</td>
-<td>19034.393950</td>
-<td>0.763889</td>
-<td>2</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">2</td>
-<td>1</td>
-<td>lasso</td>
-<td>Lasso</td>
-<td>2024-04-15 23:00:00</td>
-<td>0.017668</td>
-<td>9768.991810</td>
-<td>0.986111</td>
-<td>3</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">3</td>
-<td>1</td>
-<td>lasso</td>
-<td>Lasso</td>
-<td>2024-04-16 23:00:00</td>
-<td>0.014224</td>
-<td>7839.292592</td>
-<td>1.000000</td>
-<td>4</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">4</td>
-<td>1</td>
-<td>lasso</td>
-<td>Lasso</td>
-<td>2024-04-17 23:00:00</td>
-<td>0.023679</td>
-<td>13550.628885</td>
-<td>0.847222</td>
-<td>5</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">5</td>
-<td>1</td>
-<td>lasso</td>
-<td>Lasso</td>
-<td>2024-04-18 23:00:00</td>
-<td>0.046461</td>
-<td>25860.584388</td>
-<td>0.611111</td>
-<td>6</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">6</td>
-<td>1</td>
-<td>lasso</td>
-<td>Lasso</td>
-<td>2024-04-19 23:00:00</td>
-<td>0.036826</td>
-<td>18266.907443</td>
-<td>0.819444</td>
-<td>7</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">7</td>
-<td>1</td>
-<td>lasso</td>
-<td>Lasso</td>
-<td>2024-04-20 23:00:00</td>
-<td>0.025101</td>
-<td>13916.795765</td>
-<td>0.916667</td>
-<td>8</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">8</td>
-<td>1</td>
-<td>lasso</td>
-<td>Lasso</td>
-<td>2024-04-21 23:00:00</td>
-<td>0.027231</td>
-<td>15115.674787</td>
-<td>0.722222</td>
-<td>9</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">9</td>
-<td>1</td>
-<td>lasso</td>
-<td>Lasso</td>
-<td>2024-04-22 23:00:00</td>
-<td>0.032912</td>
-<td>16101.556090</td>
-<td>0.888889</td>
-<td>10</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">10</td>
-<td>1</td>
-<td>lightGBM</td>
-<td>LGBMRegressor</td>
-<td>2024-04-13 23:00:00</td>
-<td>0.029535</td>
-<td>17218.066669</td>
-<td>0.652778</td>
-<td>1</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">11</td>
-<td>1</td>
-<td>lightGBM</td>
-<td>LGBMRegressor</td>
-<td>2024-04-14 23:00:00</td>
-<td>0.019967</td>
-<td>10495.262534</td>
-<td>0.847222</td>
-<td>2</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">12</td>
-<td>1</td>
-<td>lightGBM</td>
-<td>LGBMRegressor</td>
-<td>2024-04-15 23:00:00</td>
-<td>0.012077</td>
-<td>7845.148808</td>
-<td>0.958333</td>
-<td>3</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">13</td>
-<td>1</td>
-<td>lightGBM</td>
-<td>LGBMRegressor</td>
-<td>2024-04-16 23:00:00</td>
-<td>0.017118</td>
-<td>9754.698420</td>
-<td>1.000000</td>
-<td>4</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">14</td>
-<td>1</td>
-<td>lightGBM</td>
-<td>LGBMRegressor</td>
-<td>2024-04-17 23:00:00</td>
-<td>0.015552</td>
-<td>8585.153709</td>
-<td>0.750000</td>
-<td>5</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">15</td>
-<td>1</td>
-<td>lightGBM</td>
-<td>LGBMRegressor</td>
-<td>2024-04-18 23:00:00</td>
-<td>0.035272</td>
-<td>19640.882716</td>
-<td>0.569444</td>
-<td>6</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">16</td>
-<td>1</td>
-<td>lightGBM</td>
-<td>LGBMRegressor</td>
-<td>2024-04-19 23:00:00</td>
-<td>0.028595</td>
-<td>15191.343242</td>
-<td>0.750000</td>
-<td>7</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">17</td>
-<td>1</td>
-<td>lightGBM</td>
-<td>LGBMRegressor</td>
-<td>2024-04-20 23:00:00</td>
-<td>0.029471</td>
-<td>15255.697823</td>
-<td>0.500000</td>
-<td>8</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">18</td>
-<td>1</td>
-<td>lightGBM</td>
-<td>LGBMRegressor</td>
-<td>2024-04-21 23:00:00</td>
-<td>0.025501</td>
-<td>12852.596611</td>
-<td>0.666667</td>
-<td>9</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">19</td>
-<td>1</td>
-<td>lightGBM</td>
-<td>LGBMRegressor</td>
-<td>2024-04-22 23:00:00</td>
-<td>0.014709</td>
-<td>7788.317766</td>
-<td>0.805556</td>
-<td>10</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">20</td>
-<td>1</td>
-<td>linear_regression</td>
-<td>LinearRegression</td>
-<td>2024-04-13 23:00:00</td>
-<td>0.050049</td>
-<td>29021.438982</td>
-<td>0.486111</td>
-<td>1</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">21</td>
-<td>1</td>
-<td>linear_regression</td>
-<td>LinearRegression</td>
-<td>2024-04-14 23:00:00</td>
-<td>0.037321</td>
-<td>18822.531200</td>
-<td>0.777778</td>
-<td>2</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">22</td>
-<td>1</td>
-<td>linear_regression</td>
-<td>LinearRegression</td>
-<td>2024-04-15 23:00:00</td>
-<td>0.018896</td>
-<td>10240.836002</td>
-<td>0.986111</td>
-<td>3</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">23</td>
-<td>1</td>
-<td>linear_regression</td>
-<td>LinearRegression</td>
-<td>2024-04-16 23:00:00</td>
-<td>0.013719</td>
-<td>7687.633764</td>
-<td>1.000000</td>
-<td>4</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">24</td>
-<td>1</td>
-<td>linear_regression</td>
-<td>LinearRegression</td>
-<td>2024-04-17 23:00:00</td>
-<td>0.023580</td>
-<td>13768.946301</td>
-<td>0.861111</td>
-<td>5</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">25</td>
-<td>1</td>
-<td>linear_regression</td>
-<td>LinearRegression</td>
-<td>2024-04-18 23:00:00</td>
-<td>0.047667</td>
-<td>26500.453913</td>
-<td>0.583333</td>
-<td>6</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">26</td>
-<td>1</td>
-<td>linear_regression</td>
-<td>LinearRegression</td>
-<td>2024-04-19 23:00:00</td>
-<td>0.038432</td>
-<td>18577.561146</td>
-<td>0.819444</td>
-<td>7</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">27</td>
-<td>1</td>
-<td>linear_regression</td>
-<td>LinearRegression</td>
-<td>2024-04-20 23:00:00</td>
-<td>0.025731</td>
-<td>14224.261457</td>
-<td>0.902778</td>
-<td>8</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">28</td>
-<td>1</td>
-<td>linear_regression</td>
-<td>LinearRegression</td>
-<td>2024-04-21 23:00:00</td>
-<td>0.026638</td>
-<td>14974.293718</td>
-<td>0.763889</td>
-<td>9</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">29</td>
-<td>1</td>
-<td>linear_regression</td>
-<td>LinearRegression</td>
-<td>2024-04-22 23:00:00</td>
-<td>0.033311</td>
-<td>16346.356785</td>
-<td>0.888889</td>
-<td>10</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">30</td>
-<td>1</td>
-<td>ridge</td>
-<td>Ridge</td>
-<td>2024-04-13 23:00:00</td>
-<td>0.050049</td>
-<td>29021.446288</td>
-<td>0.486111</td>
-<td>1</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">31</td>
-<td>1</td>
-<td>ridge</td>
-<td>Ridge</td>
-<td>2024-04-14 23:00:00</td>
-<td>0.037321</td>
-<td>18822.673480</td>
-<td>0.777778</td>
-<td>2</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">32</td>
-<td>1</td>
-<td>ridge</td>
-<td>Ridge</td>
-<td>2024-04-15 23:00:00</td>
-<td>0.018896</td>
-<td>10240.726491</td>
-<td>0.986111</td>
-<td>3</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">33</td>
-<td>1</td>
-<td>ridge</td>
-<td>Ridge</td>
-<td>2024-04-16 23:00:00</td>
-<td>0.013719</td>
-<td>7687.653094</td>
-<td>1.000000</td>
-<td>4</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">34</td>
-<td>1</td>
-<td>ridge</td>
-<td>Ridge</td>
-<td>2024-04-17 23:00:00</td>
-<td>0.023580</td>
-<td>13769.038991</td>
-<td>0.861111</td>
-<td>5</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">35</td>
-<td>1</td>
-<td>ridge</td>
-<td>Ridge</td>
-<td>2024-04-18 23:00:00</td>
-<td>0.047667</td>
-<td>26500.671411</td>
-<td>0.583333</td>
-<td>6</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">36</td>
-<td>1</td>
-<td>ridge</td>
-<td>Ridge</td>
-<td>2024-04-19 23:00:00</td>
-<td>0.038432</td>
-<td>18577.686928</td>
-<td>0.819444</td>
-<td>7</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">37</td>
-<td>1</td>
-<td>ridge</td>
-<td>Ridge</td>
-<td>2024-04-20 23:00:00</td>
-<td>0.025731</td>
-<td>14224.254051</td>
-<td>0.902778</td>
-<td>8</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">38</td>
-<td>1</td>
-<td>ridge</td>
-<td>Ridge</td>
-<td>2024-04-21 23:00:00</td>
-<td>0.026637</td>
-<td>14974.240917</td>
-<td>0.763889</td>
-<td>9</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">39</td>
-<td>1</td>
-<td>ridge</td>
-<td>Ridge</td>
-<td>2024-04-22 23:00:00</td>
-<td>0.033310</td>
-<td>16346.238205</td>
-<td>0.888889</td>
-<td>10</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">40</td>
-<td>1</td>
-<td>xgboost</td>
-<td>XGBRegressor</td>
-<td>2024-04-13 23:00:00</td>
-<td>0.025656</td>
-<td>15843.452463</td>
-<td>0.708333</td>
-<td>1</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">41</td>
-<td>1</td>
-<td>xgboost</td>
-<td>XGBRegressor</td>
-<td>2024-04-14 23:00:00</td>
-<td>0.022303</td>
-<td>12020.662135</td>
-<td>0.861111</td>
-<td>2</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">42</td>
-<td>1</td>
-<td>xgboost</td>
-<td>XGBRegressor</td>
-<td>2024-04-15 23:00:00</td>
-<td>0.012085</td>
-<td>8670.466746</td>
-<td>0.958333</td>
-<td>3</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">43</td>
-<td>1</td>
-<td>xgboost</td>
-<td>XGBRegressor</td>
-<td>2024-04-16 23:00:00</td>
-<td>0.015215</td>
-<td>9863.543049</td>
-<td>0.958333</td>
-<td>4</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">44</td>
-<td>1</td>
-<td>xgboost</td>
-<td>XGBRegressor</td>
-<td>2024-04-17 23:00:00</td>
-<td>0.018744</td>
-<td>9681.493492</td>
-<td>0.722222</td>
-<td>5</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">45</td>
-<td>1</td>
-<td>xgboost</td>
-<td>XGBRegressor</td>
-<td>2024-04-18 23:00:00</td>
-<td>0.037328</td>
-<td>22206.794887</td>
-<td>0.666667</td>
-<td>6</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">46</td>
-<td>1</td>
-<td>xgboost</td>
-<td>XGBRegressor</td>
-<td>2024-04-19 23:00:00</td>
-<td>0.033654</td>
-<td>18977.013015</td>
-<td>0.791667</td>
-<td>7</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">47</td>
-<td>1</td>
-<td>xgboost</td>
-<td>XGBRegressor</td>
-<td>2024-04-20 23:00:00</td>
-<td>0.023604</td>
-<td>12231.028438</td>
-<td>0.611111</td>
-<td>8</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">48</td>
-<td>1</td>
-<td>xgboost</td>
-<td>XGBRegressor</td>
-<td>2024-04-21 23:00:00</td>
-<td>0.023305</td>
-<td>11024.236889</td>
-<td>0.708333</td>
-<td>9</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">49</td>
-<td>1</td>
-<td>xgboost</td>
-<td>XGBRegressor</td>
-<td>2024-04-22 23:00:00</td>
-<td>0.016647</td>
-<td>9154.482548</td>
-<td>0.833333</td>
-<td>10</td>
-</tr>
-</tbody>
-</table>
-
-</div>
-</div>
-</div>
-<p>:::</p>
-<div id="setting-mlflow-exp" class="cell" data-execution_count="13">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> mlflow</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>experiment_name <span class="op">=</span> <span class="st">"ml_forecast"</span></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>mlflow_path <span class="op">=</span> <span class="st">"file:///mlruns"</span></span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>tags <span class="op">=</span> {<span class="st">"h"</span>: h,</span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="st">"step_size"</span>: step_size,</span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="st">"partitions"</span>: partitions,</span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="st">"intervals_type"</span>: <span class="st">"ConformalIntervals"</span>,</span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="st">"intervals_h"</span>: h,</span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="st">"intervals_n_windows"</span>: n_windows,</span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a><span class="st">"intervals_method"</span>: <span class="st">"conformal_distribution"</span>,</span>
-<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a><span class="st">"levels"</span>: levels }</span>
-<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
-<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>    mlflow.create_experiment(name <span class="op">=</span> experiment_name,</span>
-<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>                            artifact_location<span class="op">=</span> mlflow_path,</span>
-<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>                            tags <span class="op">=</span> tags)</span>
-<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>    meta <span class="op">=</span> mlflow.get_experiment_by_name(experiment_name)</span>
-<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Set a new experiment </span><span class="sc">{</span>experiment_name<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Pulling the metadata"</span>)</span>
-<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span>:</span>
-<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Experiment </span><span class="sc">{</span>experiment_name<span class="sc">}</span><span class="ss"> exists, pulling the metadata"</span>)</span>
-<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a>    meta <span class="op">=</span> mlflow.get_experiment_by_name(experiment_name)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="setting-mlflow-exp" class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> mlflow</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>experiment_name <span class="op">=</span> <span class="st">"ml_forecast"</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>mlflow_path <span class="op">=</span> <span class="st">"file:///mlruns"</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>tags <span class="op">=</span> {<span class="st">"h"</span>: h,</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="st">"step_size"</span>: step_size,</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a><span class="st">"partitions"</span>: partitions,</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a><span class="st">"intervals_type"</span>: <span class="st">"ConformalIntervals"</span>,</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a><span class="st">"intervals_h"</span>: h,</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a><span class="st">"intervals_n_windows"</span>: n_windows,</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a><span class="st">"intervals_method"</span>: <span class="st">"conformal_distribution"</span>,</span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a><span class="st">"levels"</span>: levels }</span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>    mlflow.create_experiment(name <span class="op">=</span> experiment_name,</span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>                            artifact_location<span class="op">=</span> mlflow_path,</span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>                            tags <span class="op">=</span> tags)</span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a>    meta <span class="op">=</span> mlflow.get_experiment_by_name(experiment_name)</span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Set a new experiment </span><span class="sc">{</span>experiment_name<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Pulling the metadata"</span>)</span>
+<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span>:</span>
+<span id="cb17-26"><a href="#cb17-26" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Experiment </span><span class="sc">{</span>experiment_name<span class="sc">}</span><span class="ss"> exists, pulling the metadata"</span>)</span>
+<span id="cb17-27"><a href="#cb17-27" aria-hidden="true" tabindex="-1"></a>    meta <span class="op">=</span> mlflow.get_experiment_by_name(experiment_name)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Experiment ml_forecast exists, pulling the metadata</code></pre>
 </div>
 </div>
-<div id="log-the-results" class="cell" data-execution_count="14">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>run_time <span class="op">=</span> datetime.datetime.now().strftime(<span class="st">"%Y-%m-</span><span class="sc">%d</span><span class="st"> %H-%M-%S"</span>)</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> index, row <span class="kw">in</span> score_df.iterrows():</span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    run_name <span class="op">=</span> row[<span class="st">"model_label"</span>] <span class="op">+</span> <span class="st">"-"</span> <span class="op">+</span> run_time </span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> mlflow.start_run(experiment_id <span class="op">=</span> meta.experiment_id, </span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>                run_name <span class="op">=</span> run_name,</span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>                tags <span class="op">=</span> {<span class="st">"type"</span>: <span class="st">"backtesting"</span>,</span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>                <span class="st">"partition"</span>: row[<span class="st">"partition"</span>], </span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>                <span class="st">"unique_id"</span>: row[<span class="st">"unique_id"</span>],</span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>                <span class="st">"model_label"</span>: row[<span class="st">"model_label"</span>],</span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>                <span class="st">"model_name"</span>: row[<span class="st">"model_name"</span>],</span>
-<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>                <span class="st">"run_name"</span>: run_name}) <span class="im">as</span> run:</span>
-<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>        model_params <span class="op">=</span> ml_models[row[<span class="st">"model_label"</span>]].get_params() </span>
-<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>        model_params[<span class="st">"model_name"</span>] <span class="op">=</span>  row[<span class="st">"model_name"</span>]</span>
-<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>        model_params[<span class="st">"model_label"</span>] <span class="op">=</span>  row[<span class="st">"model_label"</span>]</span>
-<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>        model_params[<span class="st">"partition"</span>] <span class="op">=</span>  row[<span class="st">"partition"</span>]</span>
-<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>        model_params[<span class="st">"lags"</span>] <span class="op">=</span>  <span class="bu">list</span>(<span class="bu">range</span>(<span class="dv">1</span>, <span class="dv">24</span>))</span>
-<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>        model_params[<span class="st">"date_features"</span>] <span class="op">=</span> [<span class="st">"month"</span>, <span class="st">"day"</span>, <span class="st">"dayofweek"</span>,<span class="st">"week"</span>, <span class="st">"hour"</span>]</span>
-<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>        mlflow.log_params(model_params)</span>
-<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>        mlflow.log_metric(<span class="st">"mape"</span>, row[<span class="st">"mape"</span>])</span>
-<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>        mlflow.log_metric(<span class="st">"rmse"</span>, row[<span class="st">"rmse"</span>])</span>
-<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>        mlflow.log_metric(<span class="st">"coverage"</span>, row[<span class="st">"coverage"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="log-the-results" class="cell" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>run_time <span class="op">=</span> datetime.datetime.now().strftime(<span class="st">"%Y-%m-</span><span class="sc">%d</span><span class="st"> %H-%M-%S"</span>)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> index, row <span class="kw">in</span> score_df.iterrows():</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    run_name <span class="op">=</span> row[<span class="st">"model_label"</span>] <span class="op">+</span> <span class="st">"-"</span> <span class="op">+</span> run_time </span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> mlflow.start_run(experiment_id <span class="op">=</span> meta.experiment_id, </span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>                run_name <span class="op">=</span> run_name,</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>                tags <span class="op">=</span> {<span class="st">"type"</span>: <span class="st">"backtesting"</span>,</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>                <span class="st">"partition"</span>: row[<span class="st">"partition"</span>], </span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>                <span class="st">"unique_id"</span>: row[<span class="st">"unique_id"</span>],</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>                <span class="st">"model_label"</span>: row[<span class="st">"model_label"</span>],</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>                <span class="st">"model_name"</span>: row[<span class="st">"model_name"</span>],</span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>                <span class="st">"run_name"</span>: run_name}) <span class="im">as</span> run:</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>        model_params <span class="op">=</span> ml_models[row[<span class="st">"model_label"</span>]].get_params() </span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>        model_params[<span class="st">"model_name"</span>] <span class="op">=</span>  row[<span class="st">"model_name"</span>]</span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>        model_params[<span class="st">"model_label"</span>] <span class="op">=</span>  row[<span class="st">"model_label"</span>]</span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>        model_params[<span class="st">"partition"</span>] <span class="op">=</span>  row[<span class="st">"partition"</span>]</span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>        model_params[<span class="st">"lags"</span>] <span class="op">=</span>  <span class="bu">list</span>(<span class="bu">range</span>(<span class="dv">1</span>, <span class="dv">24</span>))</span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>        model_params[<span class="st">"date_features"</span>] <span class="op">=</span> [<span class="st">"month"</span>, <span class="st">"day"</span>, <span class="st">"dayofweek"</span>,<span class="st">"week"</span>, <span class="st">"hour"</span>]</span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>        mlflow.log_params(model_params)</span>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a>        mlflow.log_metric(<span class="st">"mape"</span>, row[<span class="st">"mape"</span>])</span>
+<span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a>        mlflow.log_metric(<span class="st">"rmse"</span>, row[<span class="st">"rmse"</span>])</span>
+<span id="cb19-22"><a href="#cb19-22" aria-hidden="true" tabindex="-1"></a>        mlflow.log_metric(<span class="st">"coverage"</span>, row[<span class="st">"coverage"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>::: {#save-the-data .cell execution_count=17} <code>{.python .cell-code}  bkt_df.to_csv(backtesting_path, index = False)</code> :::</p>
 </section>
 
 </main>

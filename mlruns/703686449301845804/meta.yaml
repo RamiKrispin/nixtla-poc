@@ -1,0 +1,6 @@
+artifact_location: file:///workspaces/nixtla-poc/mlruns/703686449301845804
+creation_time: 1738155338088
+experiment_id: '703686449301845804'
+last_update_time: 1738155338088
+lifecycle_stage: active
+name: hyperparameter_tuning

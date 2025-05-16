@@ -1,0 +1,15 @@
+artifact_uri: file:///mlruns/612f7ad0a25e4f69ab8712e21856f6d5/artifacts
+end_time: 1734443187527
+entry_point_name: ''
+experiment_id: '515243420851713172'
+lifecycle_stage: active
+run_id: 612f7ad0a25e4f69ab8712e21856f6d5
+run_name: linear_regression-2024-12-17 13-46-23
+run_uuid: 612f7ad0a25e4f69ab8712e21856f6d5
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1734443187438
+status: 3
+tags: []
+user_id: root

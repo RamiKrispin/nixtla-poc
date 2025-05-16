@@ -108,7 +108,7 @@ By default, the API has a 5000-row limitation per pull. The eia_backfill functio
 df = eia_api.eia_backfill(api_key = eia_api_key, 
         api_path = api_path, 
         facets = facets, 
-        start = start,
+        start = start - datetime.timedelta(hours = 1),
         end = end,
         offset = offset) 
 ```
@@ -129,7 +129,7 @@ df.data.tail(10)
 
 ## Data Quality checks
 
-We will runn the following data quality checks:
+We will run the following data quality checks:
 
 - Check that the series timestamp is regular (e.g., equaliy spaced)
 - Check for missing values
@@ -140,7 +140,7 @@ We will runn the following data quality checks:
 
 ```{python}
 #| label: Checking the data
-ts_obj = pd.DataFrame(np.arange(start = start, stop = end + datetime.timedelta(hours = 1), step = datetime.timedelta(hours = 1)).astype(datetime.datetime), columns=["index"])
+ts_obj = pd.DataFrame(np.arange(start = start , stop = end + datetime.timedelta(hours = 1), step = datetime.timedelta(hours = 1)).astype(datetime.datetime), columns=["index"])
 print(len(ts_obj))
 ts_obj  = ts_obj.merge(df.data, left_on = "index", right_on = "period", how="left")
 print(len(ts_obj))

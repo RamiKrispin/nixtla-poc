@@ -35,12 +35,21 @@ from statistics import mean
 import plotly.express as px
 ```
 
+
+Load metadata
+```{python}
+#| label: Load the metadata
+raw_json = open("./settings/settings.json")
+meta_json = json.load(raw_json)
+backtesting_path = meta_json["data"]["backtesting_path"]
+```
+
 ## Load the Data
 
 Reformat the data
 
 ```{python}
-#| label: Loading data
+#| label: Load the data
 
 ts = pd.read_csv("data/data.csv")
 ts["ds"] = pd.to_datetime(ts["ds"])
@@ -97,7 +106,9 @@ levels = [95]
 ```
 
 
+
 ```{python}
+#| label: Run the backtesting
 bkt_df = mlf.cross_validation(
         df = ts,
         h = h,
@@ -115,6 +126,55 @@ bkt_df = mlf.cross_validation(
 bkt_df.head()
 ```
 
+
+
+```{python}
+#| label: Review a model 
+bkt_df[["ds", "lightGBM", "lightGBM-lo-95",	"lightGBM-hi-95"]].head()
+```
+
+
+
+```{python}
+models = list(ml_models.keys()) 
+bkt_long = pd.melt(
+    bkt_df,
+    id_vars=["unique_id", "ds", "cutoff", "y"],
+    value_vars=models + [f"{model}-lo-95" for model in models] \
+    				  + [f"{model}-hi-95" for model in models],
+    var_name="model_label",
+    value_name="value",
+)
+
+bkt_long.head()
+```
+
+
+
+```{python}
+def split_model_confidence(model_name):
+    if "-lo-95" in model_name:
+        return model_name.replace("-lo-95", ""), "lower"
+    elif "-hi-95" in model_name:
+        return model_name.replace("-hi-95", ""), "upper"
+    else:
+        return model_name, "forecast"
+
+bkt_long["model_label"],\
+bkt_long["type"] = zip(*bkt_long["model_label"].map(split_model_confidence))
+```
+
+
+```{python}
+cutoff = bkt_long["cutoff"].unique()
+partitions_mapping = pd.DataFrame({"cutoff": cutoff, 
+	"partition": range(1, len(cutoff) + 1)})
+
+partitions_mapping.head()
+bkt_long = bkt_long.merge(partitions_mapping, how = "left", on = ["cutoff"])
+
+bkt_long.head()
+```
 
 ```{python}
 #| label: Reformat the bkt obj
@@ -148,6 +208,18 @@ bkt_long.head()
 
 
 ```{python}
+#| label: Add partitions
+cutoff = bkt_long["cutoff"].unique()
+partitions_mapping = pd.DataFrame({"cutoff": cutoff, "partition": range(1, len(cutoff) + 1)})
+
+partitions_mapping
+
+bkt_long = bkt_long.merge(partitions_mapping, how = "left", on = ["cutoff"])
+bkt_long.head()
+```
+
+
+```{python}
 #| label: Score the models
 def mape(y, yhat):
     mape = mean(abs(y - yhat)/ y) 
@@ -172,13 +244,18 @@ def score(df):
     return d
 
 score_df = (bkt_long
-.groupby(["unique_id", "model_label", "model_name", "cutoff"])
+.groupby(["unique_id", "model_label", "model_name", "partition"])
 .apply(score)
 .reset_index()
 )
 
 score_df.head()
 ```
+
+
+
+
+
 
 
 
@@ -209,18 +286,6 @@ fig.show()
 
 
 ## Logging the Results with MLflow
-
-```{python}
-#| label: Add partitions
-cutoff = bkt_long["cutoff"].unique()
-partitions_mapping = pd.DataFrame({"cutoff": cutoff, "partition": range(1, len(cutoff) + 1)})
-
-partitions_mapping
-
-score_df = score_df.merge(partitions_mapping, how = "left", on = ["cutoff"])
-score_df
-```
-
 
 ```{python}
 #| label: Setting MLflow exp
@@ -281,10 +346,126 @@ for index, row in score_df.iterrows():
 
 
 
+ ```{python}
+ #| label: Save the data
+ bkt_df.to_csv(backtesting_path, index = False)
+ ```
+
+
+
+## Additional tuning
+
+ ```{python}
+ ml_models2 = {
+    "lightGBM1": LGBMRegressor(n_estimators = 100, learning_rate= 0.1),
+    "lightGBM2": LGBMRegressor(n_estimators = 250, learning_rate= 0.1),
+    "lightGBM3": LGBMRegressor(n_estimators = 500, learning_rate= 0.1),
+    "lightGBM4": LGBMRegressor(n_estimators = 100, learning_rate= 0.05),
+    "lightGBM5": LGBMRegressor(n_estimators = 250, learning_rate= 0.05),
+    "lightGBM6": LGBMRegressor(n_estimators = 500, learning_rate= 0.05),
+}
+
+# ml_models = [lgb, xgb, lm, lasso, ridge]
+
+mlf2 = MLForecast(
+    models= ml_models2,  
+    freq='h', 
+    lags=list(range(1, 24)),  
+    date_features=["month", "day", "dayofweek", "week", "hour"]
+    )
+```
+
+ ```{python}
+bkt_df2 = mlf2.cross_validation(
+        df = ts,
+        h = h,
+        step_size = step_size,
+        n_windows = partitions,
+        prediction_intervals = pi, 
+        level = levels)
+
+```
+
+
+
+```{python}
+model_label = list(ml_models2.keys()) 
+model_name = [type(s).__name__ for s in list(ml_models2.values())]  
+lower = [s + "-lo-95" for s in model_label]
+upper= [s + "-hi-95" for s in model_label]
+models_mapping = pd.DataFrame({"model_label": model_label, 
+            "model_name": model_name})
+
+
+d1 = pd.melt(bkt_df2, id_vars= ["unique_id", "ds", "cutoff"], 
+value_vars= model_label, var_name = "model_label" , value_name = "forecast")
+d2 = pd.melt(bkt_df2, id_vars= ["unique_id", "ds", "cutoff"], 
+value_vars= lower, var_name = "model_label" , value_name = "lower")
+d2["model_label"] = d2["model_label"].str.replace("-lo-95", "")
+d3 = pd.melt(bkt_df2, id_vars= ["unique_id", "ds", "cutoff"], 
+value_vars= upper, var_name = "model_label", value_name = "upper")
+d3["model_label"] = d3["model_label"].str.replace("-hi-95", "")
+
+bkt_long2 = (
+    d1
+.merge(right = d2, how = "left", on = ["unique_id", "ds", "cutoff", "model_label"])
+.merge(right = d3, how = "left", on = ["unique_id", "ds", "cutoff", "model_label"])
+.merge(right =  models_mapping, how = "left", on = ["model_label"])
+.merge(right =  ts, how = "left", on = ["unique_id", "ds"])
+)
+bkt_long2.head()
+
+bkt_long2 = bkt_long2.merge(partitions_mapping, how = "left", on = ["cutoff"])
+
+score_df2 = (bkt_long2
+.groupby(["unique_id", "model_label", "model_name", "partition"])
+.apply(score)
+.reset_index()
+)
+
+score_df2.head()
+```
 
 
 
 
+```{python}
+leaderboard2 = score_df2.groupby(["unique_id", "model_label", "model_name"]).agg({"mape": "mean", "rmse": "mean", "coverage": "mean"}).reset_index()
+
+leaderboard2.sort_values(by = ["mape"])
+```
 
 
+
+```{python}
+run_time = datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S")
+for index, row in score_df2.iterrows():
+    run_name = row["model_label"] + "-" + run_time 
+    with mlflow.start_run(experiment_id = meta.experiment_id, 
+                run_name = run_name,
+                tags = {"type": "backtesting",
+                "partition": row["partition"], 
+                "unique_id": row["unique_id"],
+                "model_label": row["model_label"],
+                "model_name": row["model_name"],
+                "run_name": run_name}) as run:
+
+        model_params = ml_models2[row["model_label"]].get_params() 
+        model_params["model_name"] =  row["model_name"]
+        model_params["model_label"] =  row["model_label"]
+        model_params["partition"] =  row["partition"]
+        model_params["lags"] =  list(range(1, 24))
+        model_params["date_features"] = ["month", "day", "dayofweek","week", "hour"]
+        mlflow.log_params(model_params)
+        mlflow.log_metric("mape", row["mape"])
+        mlflow.log_metric("rmse", row["rmse"])
+        mlflow.log_metric("coverage", row["coverage"])
+```
+
+TODO
+merge the backtesting tables and save to csv fie
+ ```{python}
+ #| label: Save the data
+ bkt_df2.to_csv(backtesting_path, index = False)
+ ```
 

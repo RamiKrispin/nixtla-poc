@@ -1,0 +1,15 @@
+artifact_uri: file:///workspaces/nixtla-poc/mlruns/703686449301845804/c8945d8b878f4f64b1b55f005d047c06/artifacts
+end_time: 1738155338433
+entry_point_name: ''
+experiment_id: '703686449301845804'
+lifecycle_stage: active
+run_id: c8945d8b878f4f64b1b55f005d047c06
+run_name: charming-dog-721
+run_uuid: c8945d8b878f4f64b1b55f005d047c06
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1738155338345
+status: 3
+tags: []
+user_id: root

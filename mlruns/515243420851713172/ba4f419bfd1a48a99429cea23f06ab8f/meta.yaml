@@ -1,0 +1,15 @@
+artifact_uri: file:///mlruns/ba4f419bfd1a48a99429cea23f06ab8f/artifacts
+end_time: 1734442820858
+entry_point_name: ''
+experiment_id: '515243420851713172'
+lifecycle_stage: active
+run_id: ba4f419bfd1a48a99429cea23f06ab8f
+run_name: lasso-2024-12-17 13-40-20
+run_uuid: ba4f419bfd1a48a99429cea23f06ab8f
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1734442820758
+status: 3
+tags: []
+user_id: root

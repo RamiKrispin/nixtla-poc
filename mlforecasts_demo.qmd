@@ -20,7 +20,6 @@ from utilsforecast.plotting import plot_series
 
 from statistics import mean
 
-
 from mlforecast.target_transforms import Differences
 from mlforecast.utils import PredictionIntervals
 from window_ops.expanding import expanding_mean
@@ -36,6 +35,10 @@ We will use the US hourly demand for electricity. The series contains a two (plu
 ```{python}
 ts = pd.read_csv("data/data.csv")
 ts["ds"] = pd.to_datetime(ts["ds"])
+ts = ts.sort_values("ds")
+ts = ts[[ "ds", "y"]]
+
+ts["unique_id"] = "1"
 
 print(ts.head())
 
@@ -84,29 +87,32 @@ We set a forecasting object using the following three regression models:
 We will use regress the series with its lags (lags 1 and 24) using the `lags` argument, and set a seasonal features with the `data_features` argument:
 
 ```{python}
-ml_models = [LGBMRegressor(), XGBRegressor(), LinearRegression()]
-
+ml_models = [LGBMRegressor(verbosity=-1), XGBRegressor(), LinearRegression()]
+h = 72
 mlf = MLForecast(
     models= ml_models,  
     freq='h', 
-    lags=list(range(1, 24)),  
-    date_features=['year', 'month', 'day', 'dayofweek', 'quarter', 'week', 'hour'],  # Date features to use as regressors
-)
-
+    lags=list(range(1, 24)),
+    date_features=['year', 'month', 'day', 'dayofweek', 'quarter', 'week', 'hour']
+    )
 ```
 
+
+
+```{python}
+mlf.preprocess(train)
+```
 We will use the `fit` method to train the model on the training partition
 
 ```{python}
 mlf.fit(df = train,  fitted=True, 
-prediction_intervals=PredictionIntervals(n_windows=5, h=72, method="conformal_distribution" ))
-
+prediction_intervals=PredictionIntervals(n_windows=3, h=h, method="conformal_distribution" ))
 ```
 
 And create forecast using the `predict` method
 
 ```{python}
-ml_forecast = mlf.predict(72, level  = [95])
+ml_forecast = mlf.predict(h = h, level  = [95])
 
 ml_forecast
 ```

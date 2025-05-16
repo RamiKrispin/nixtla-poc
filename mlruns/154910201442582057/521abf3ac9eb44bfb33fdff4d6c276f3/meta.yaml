@@ -1,0 +1,15 @@
+artifact_uri: file:///mlruns/521abf3ac9eb44bfb33fdff4d6c276f3/artifacts
+end_time: 1736574397293
+entry_point_name: ''
+experiment_id: '154910201442582057'
+lifecycle_stage: active
+run_id: 521abf3ac9eb44bfb33fdff4d6c276f3
+run_name: adab-2025-01-11 05-46-34
+run_uuid: 521abf3ac9eb44bfb33fdff4d6c276f3
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1736574397157
+status: 3
+tags: []
+user_id: root

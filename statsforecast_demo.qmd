@@ -47,20 +47,21 @@ Reformat the data
 ts = pd.read_csv("data/data.csv")
 ts["ds"] = pd.to_datetime(ts["ds"])
 ts = ts.sort_values("ds")
-ts.head()
+ts = ts[["unique_id", "ds", "y"]]
+
+os.environ['NIXTLA_ID_AS_COL'] = '1'
 ```
 
 Subset for the last 25 months:
 ```{python}
-end = ts["ds"].max()
-start = end - datetime.timedelta(hours = 24 * 31 * 25)
-ts = ts[ts["ds"] >= start]
+ts.head()
 ```
+
 
 Set the last 72 hours as testing partition and use the rest for training
 ```{python}
 test_length = 72
-
+end = ts["ds"].max()
 train_end = end  - datetime.timedelta(hours = test_length)
 
 
@@ -79,19 +80,21 @@ Set the models:
 auto_arima = AutoARIMA()
 s_naive = SeasonalNaive(season_length=24)
 theta =  DynamicOptimizedTheta(season_length= 24)
-mstl = MSTL(
-    season_length=[24, 24 * 7], 
-    trend_forecaster=AutoARIMA(),
-    alias="MSTL_ARIMA_trend"
-)
+mstl1 = MSTL(season_length=[24, 24 * 7], 
+		    trend_forecaster=AutoARIMA(),
+		    alias="MSTL_ARIMA_trend")
+
+mstl2 = MSTL(season_length=[24, 24 * 7], 
+		    trend_forecaster= Holt(),
+    		alias="MSTL_Holt_trend")
 
 stats_models = [
    auto_arima,
    s_naive,
    theta,
-   mstl
+   mstl1,
+   mstl2
 ]
-
 
 
 sf = StatsForecast( 
@@ -139,8 +142,9 @@ def coverage(y, lower, upper):
 ```{python}
 fc = forecasts_stats.merge(test, how = "left", on = "ds")
 fc_performance = None
+models_labels = [str(m) for m in stats_models]
 
-for i in ["AutoARIMA", "SeasonalNaive", "DynamicOptimizedTheta", "MSTL_ARIMA_trend"]:
+for i in [str(m) for m in stats_models]:
     m = mape(y = fc.y, yhat = fc[i])
     r = rmse(y = fc.y, yhat = fc[i])
     c = coverage(y = fc.y, lower = fc[i + "-lo-95"], upper = fc[i + "-hi-95"])
@@ -153,6 +157,9 @@ for i in ["AutoARIMA", "SeasonalNaive", "DynamicOptimizedTheta", "MSTL_ARIMA_tre
         fc_performance = pd.DataFrame([perf])
     else:
         fc_performance = pd.concat([fc_performance, pd.DataFrame([perf])])
+    fc_performance.reset_index(drop=True, inplace=True)
+    
+
 
 fc_performance.sort_values("rmse")
 ```

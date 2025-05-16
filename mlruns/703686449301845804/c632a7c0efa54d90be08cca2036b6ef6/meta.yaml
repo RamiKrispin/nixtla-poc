@@ -1,0 +1,15 @@
+artifact_uri: file:///workspaces/nixtla-poc/mlruns/703686449301845804/c632a7c0efa54d90be08cca2036b6ef6/artifacts
+end_time: 1738155338226
+entry_point_name: ''
+experiment_id: '703686449301845804'
+lifecycle_stage: active
+run_id: c632a7c0efa54d90be08cca2036b6ef6
+run_name: learned-skink-52
+run_uuid: c632a7c0efa54d90be08cca2036b6ef6
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1738155338136
+status: 3
+tags: []
+user_id: root

@@ -1,0 +1,6 @@
+artifact_location: file:///mlruns
+creation_time: 1734321740193
+experiment_id: '515243420851713172'
+last_update_time: 1734321740193
+lifecycle_stage: active
+name: ml_forecast

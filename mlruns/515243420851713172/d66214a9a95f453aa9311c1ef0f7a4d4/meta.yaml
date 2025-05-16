@@ -1,0 +1,15 @@
+artifact_uri: file:///mlruns/d66214a9a95f453aa9311c1ef0f7a4d4/artifacts
+end_time: 1734927823301
+entry_point_name: ''
+experiment_id: '515243420851713172'
+lifecycle_stage: active
+run_id: d66214a9a95f453aa9311c1ef0f7a4d4
+run_name: lightGBM6-2024-12-23 04-23-35
+run_uuid: d66214a9a95f453aa9311c1ef0f7a4d4
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1734927823178
+status: 3
+tags: []
+user_id: root

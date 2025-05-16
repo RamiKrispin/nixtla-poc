@@ -68,7 +68,7 @@ ts = ts[ts["ds"] >= start]
 Define the forecasting models:
 
 ```{python}
-#| label: 
+#| label: Define models
 
 # Instantiate models with hourly seasonality
 stats_models = {
@@ -132,7 +132,7 @@ bkt_df = sf.cross_validation(
     n_windows =  partitons,
     prediction_intervals = intervals,
     level = levels
-  )
+)
 ```
 
 
