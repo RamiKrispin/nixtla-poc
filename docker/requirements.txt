@@ -8,7 +8,7 @@ plotly==5.23.0
 nbformat
 ipywidgets
 jupyter 
-statsforecast==1.7.6
+statsforecast==2.0.1
 mlforecast==1.0.2
 lightgbm
 xgboost
