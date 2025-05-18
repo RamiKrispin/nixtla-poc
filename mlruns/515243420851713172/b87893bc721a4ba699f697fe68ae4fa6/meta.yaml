@@ -1,8 +1,9 @@
 artifact_uri: file:///mlruns/b87893bc721a4ba699f697fe68ae4fa6/artifacts
+deleted_time: 1747594582134
 end_time: 1734442823337
 entry_point_name: ''
 experiment_id: '515243420851713172'
-lifecycle_stage: active
+lifecycle_stage: deleted
 run_id: b87893bc721a4ba699f697fe68ae4fa6
 run_name: linear_regression-2024-12-17 13-40-20
 run_uuid: b87893bc721a4ba699f697fe68ae4fa6

@@ -1,8 +1,9 @@
 artifact_uri: file:///mlruns/5faaa3104ccf4379b588958e67456037/artifacts
+deleted_time: 1747594595023
 end_time: 1734321743443
 entry_point_name: ''
 experiment_id: '515243420851713172'
-lifecycle_stage: active
+lifecycle_stage: deleted
 run_id: 5faaa3104ccf4379b588958e67456037
 run_name: ridge-2024-12-16 04-02-20
 run_uuid: 5faaa3104ccf4379b588958e67456037

@@ -1,8 +1,9 @@
 artifact_uri: file:///mlruns/234155bae4b54088ba794c5b104876b8/artifacts
+deleted_time: 1747594581562
 end_time: 1734443184911
 entry_point_name: ''
 experiment_id: '515243420851713172'
-lifecycle_stage: active
+lifecycle_stage: deleted
 run_id: 234155bae4b54088ba794c5b104876b8
 run_name: lasso-2024-12-17 13-46-23
 run_uuid: 234155bae4b54088ba794c5b104876b8

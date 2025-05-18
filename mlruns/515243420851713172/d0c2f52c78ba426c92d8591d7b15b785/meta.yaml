@@ -1,8 +1,9 @@
 artifact_uri: file:///mlruns/d0c2f52c78ba426c92d8591d7b15b785/artifacts
+deleted_time: 1747594580817
 end_time: 1734443189988
 entry_point_name: ''
 experiment_id: '515243420851713172'
-lifecycle_stage: active
+lifecycle_stage: deleted
 run_id: d0c2f52c78ba426c92d8591d7b15b785
 run_name: xgboost-2024-12-17 13-46-23
 run_uuid: d0c2f52c78ba426c92d8591d7b15b785

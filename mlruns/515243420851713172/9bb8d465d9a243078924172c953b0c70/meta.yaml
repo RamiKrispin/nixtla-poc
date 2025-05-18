@@ -1,0 +1,16 @@
+artifact_uri: file:///mlruns/9bb8d465d9a243078924172c953b0c70/artifacts
+deleted_time: 1747594564863
+end_time: 1747593581307
+entry_point_name: ''
+experiment_id: '515243420851713172'
+lifecycle_stage: deleted
+run_id: 9bb8d465d9a243078924172c953b0c70
+run_name: lasso-2025-05-18 16-47-38
+run_uuid: 9bb8d465d9a243078924172c953b0c70
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1747593581264
+status: 4
+tags: []
+user_id: root

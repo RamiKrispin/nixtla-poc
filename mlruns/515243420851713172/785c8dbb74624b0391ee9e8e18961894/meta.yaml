@@ -1,0 +1,16 @@
+artifact_uri: file:///mlruns/785c8dbb74624b0391ee9e8e18961894/artifacts
+deleted_time: 1747594564739
+end_time: 1747593812277
+entry_point_name: ''
+experiment_id: '515243420851713172'
+lifecycle_stage: deleted
+run_id: 785c8dbb74624b0391ee9e8e18961894
+run_name: linear_regression-2025-05-18 16-47-38
+run_uuid: 785c8dbb74624b0391ee9e8e18961894
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1747593812226
+status: 3
+tags: []
+user_id: root

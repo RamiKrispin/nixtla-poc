@@ -5,13 +5,13 @@ user_name=rkrispin
 image_label=nixtla_poc
 image_tag=0.0.1
 image_name=$user_name/$image_label:$image_tag
-
+quarto_ver=1.7.31
 
 echo "Build the docker"
 
 docker build . -f Dockerfile \
                --progress=plain \
-               --build-arg QUARTO_VER=$QUARTO_VER \
+               --build-arg QUARTO_VER=$quarto_ver \
                --build-arg VENV_NAME="forecasting-poc" \
                -t $image_name
 

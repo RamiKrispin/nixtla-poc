@@ -1,0 +1,15 @@
+artifact_uri: file:///workspaces/nixtla-poc/mlruns/0/370cf56294984eda9f36591f9baaa121/artifacts
+end_time: 1747595336685
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 370cf56294984eda9f36591f9baaa121
+run_name: partition_5
+run_uuid: 370cf56294984eda9f36591f9baaa121
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1747595336645
+status: 3
+tags: []
+user_id: root

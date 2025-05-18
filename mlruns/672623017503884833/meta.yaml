@@ -1,0 +1,6 @@
+artifact_location: file:///mlruns
+creation_time: 1747521871603
+experiment_id: '672623017503884833'
+last_update_time: 1747521871603
+lifecycle_stage: active
+name: models_backtesting

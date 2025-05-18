@@ -1,8 +1,9 @@
 artifact_uri: file:///mlruns/585fb9d5a00c4412942eab4044e3e21f/artifacts
+deleted_time: 1747594594208
 end_time: 1734442822367
 entry_point_name: ''
 experiment_id: '515243420851713172'
-lifecycle_stage: active
+lifecycle_stage: deleted
 run_id: 585fb9d5a00c4412942eab4044e3e21f
 run_name: lightGBM-2024-12-17 13-40-20
 run_uuid: 585fb9d5a00c4412942eab4044e3e21f

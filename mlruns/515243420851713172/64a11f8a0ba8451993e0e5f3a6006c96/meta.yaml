@@ -1,0 +1,15 @@
+artifact_uri: file:///mlruns/64a11f8a0ba8451993e0e5f3a6006c96/artifacts
+end_time: 1747595442493
+entry_point_name: ''
+experiment_id: '515243420851713172'
+lifecycle_stage: active
+run_id: 64a11f8a0ba8451993e0e5f3a6006c96
+run_name: partition_7
+run_uuid: 64a11f8a0ba8451993e0e5f3a6006c96
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1747595442445
+status: 3
+tags: []
+user_id: root
