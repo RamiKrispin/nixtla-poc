@@ -3,7 +3,7 @@
 # Image settings
 user_name=rkrispin
 image_label=nixtla_poc
-image_tag=0.0.1
+image_tag=0.0.2
 image_name=$user_name/$image_label:$image_tag
 quarto_ver=1.7.31
 

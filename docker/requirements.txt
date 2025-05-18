@@ -9,7 +9,7 @@ nbformat
 ipywidgets
 jupyter 
 statsforecast==1.7.6
-mlforecast==0.13.3
+mlforecast==1.0.2
 lightgbm
 xgboost
 scikit-learn
